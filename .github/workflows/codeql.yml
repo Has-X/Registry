@@ -33,7 +33,7 @@ jobs:
           languages: csharp
 
       - name: Restore
-        run: dotnet restore Registry.slnx
+        run: dotnet restore Registry.slnx --runtime win-x64
 
       - name: Build
         run: dotnet build Registry.slnx --configuration Release --no-restore
