@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Registry.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Registry.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

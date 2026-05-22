@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build release artifacts
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Registry.slnx
+
+      - name: Build
+        run: dotnet build Registry.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests\Registry.Tests\Registry.Tests.csproj --configuration Release --no-build
+
+      - name: Publish CLI
+        run: dotnet publish src\Registry.Cli\Registry.Cli.csproj --configuration Release --runtime win-x64 --self-contained true --output artifacts\registry-cli-win-x64
+
+      - name: Publish app
+        run: dotnet publish src\Registry.App\Registry.App.csproj --configuration Release --runtime win-x64 --self-contained true --output artifacts\registry-app-win-x64
+
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts\registry-cli-win-x64\* -DestinationPath registry-cli-win-x64.zip -Force
+          Compress-Archive -Path artifacts\registry-app-win-x64\* -DestinationPath registry-app-win-x64.zip -Force
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            registry-cli-win-x64.zip
+            registry-app-win-x64.zip
+          generate_release_notes: true

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Registry_App.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Registry_App.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24,16,24,16" RowSpacing="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
+        <StackPanel Grid.Row="1" MaxWidth="760" HorizontalAlignment="Left" Spacing="14">
+            <Border
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
+                <StackPanel Spacing="14">
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Appearance" />
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Toolbar alignment" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Left is the default for quick desktop scanning." />
+                        </StackPanel>
+                        <ComboBox
+                            x:Name="ToolbarAlignmentSelector"
+                            Grid.Column="1"
+                            MinWidth="180"
+                            SelectionChanged="ToolbarAlignmentSelector_SelectionChanged">
+                            <ComboBoxItem Content="Left" />
+                            <ComboBoxItem Content="Center" />
+                            <ComboBoxItem Content="Right" />
+                        </ComboBox>
+                    </Grid>
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Toolbar detail" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Essential keeps rare and admin commands in overflow; Full keeps more buttons visible for testing." />
+                        </StackPanel>
+                        <ComboBox
+                            x:Name="ToolbarDetailSelector"
+                            Grid.Column="1"
+                            MinWidth="180"
+                            SelectionChanged="ToolbarDetailSelector_SelectionChanged">
+                            <ComboBoxItem Content="Essential" />
+                            <ComboBoxItem Content="Full" />
+                        </ComboBox>
+                    </Grid>
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Window backdrop" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Mica stays on by default; Strong Mica increases contrast." />
+                        </StackPanel>
+                        <ComboBox
+                            x:Name="BackdropSelector"
+                            Grid.Column="1"
+                            MinWidth="180"
+                            SelectionChanged="BackdropSelector_SelectionChanged">
+                            <ComboBoxItem Content="Mica" />
+                            <ComboBoxItem Content="Strong Mica" />
+                            <ComboBoxItem Content="Off" />
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
+                <StackPanel Spacing="10">
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Safety" />
+                    <CheckBox Content="Export backup before destructive changes" IsChecked="True" />
+                    <CheckBox Content="Show 32-bit and virtualized registry warnings" IsChecked="True" />
+                    <CheckBox Content="Keep destructive commands disabled until an item is selected" IsChecked="True" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
+                <StackPanel Spacing="10">
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Windows integration" />
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Add Registry to the per-user Open with list for .reg files."
+                            TextWrapping="Wrap" />
+                        <Button
+                            Grid.Column="1"
+                            Padding="12,6"
+                            Click="RegisterRegOpenWith_Click"
+                            Content="Register" />
+                    </Grid>
+                    <InfoBar
+                        x:Name="IntegrationStatus"
+                        IsClosable="False"
+                        IsOpen="False" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Page>
