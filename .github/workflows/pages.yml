@@ -62,8 +62,7 @@ jobs:
                 <h2>Links</h2>
                 <p><a href="index.md">README</a> · <a href="docs/launch-plan.md">Launch plan</a> · <a href="docs/performance.md">Performance notes</a> · <a href="SECURITY.md">Security</a></p>
               </div>
-              <pre><code>dotnet build Registry.slnx
-dotnet test tests\Registry.Tests\Registry.Tests.csproj --no-build</code></pre>
+              <pre><code>dotnet build Registry.slnx<br>dotnet test tests\Registry.Tests\Registry.Tests.csproj --no-build</code></pre>
             </main>
           </body>
           </html>
