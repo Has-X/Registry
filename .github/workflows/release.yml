@@ -44,7 +44,7 @@ jobs:
           Compress-Archive -Path artifacts\registry-app-win-x64\* -DestinationPath registry-app-win-x64.zip -Force
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             registry-cli-win-x64.zip
