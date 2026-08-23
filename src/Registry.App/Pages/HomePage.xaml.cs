@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using Registry.Core;
 using Registry_App;
+using Registry_App.Services;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -53,6 +54,8 @@ public sealed partial class HomePage : Page
 
     private void HomePage_Loaded(object sender, RoutedEventArgs e)
     {
+        LocalizationService.Apply(this);
+        ApplyLocalizedCommandLabels();
         AppSettings.Changed -= AppSettings_Changed;
         AppSettings.Changed += AppSettings_Changed;
         RegistryFavoriteStore.FavoritesChanged -= RegistryFavoriteStore_FavoritesChanged;
@@ -102,7 +105,7 @@ public sealed partial class HomePage : Page
         }
         catch (Exception ex) when (ex is FormatException or ArgumentException)
         {
-            ShowStatus("Invalid path", ex.Message, InfoBarSeverity.Error);
+            ShowStatus("Invalid path", LocalizationService.Format("status.invalid-path.message", "{0} The current key remains open.", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -166,7 +169,7 @@ public sealed partial class HomePage : Page
         try
         {
             var view = GetCurrentView();
-            UpdateStatus($"Loading children for {item.Path}");
+            UpdateStatus(LocalizationService.Format("status.loading-children", "Loading children for {0}", item.Path));
             var subKeyNames = await _readCache.GetSubKeyNamesAsync(item.Path, view);
             item = new RegistryTreeItem(item.Path, item.Name, subKeyNames.Count, null);
             _treeItems[args.Node] = item;
@@ -313,7 +316,7 @@ public sealed partial class HomePage : Page
         }
         catch (Exception ex) when (ex is FormatException or ArgumentException)
         {
-            ShowStatus("Invalid path", ex.Message, InfoBarSeverity.Error);
+            ShowStatus("Invalid path", LocalizationService.Format("status.invalid-path.message", "{0} The current key remains open.", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -343,13 +346,16 @@ public sealed partial class HomePage : Page
             return;
         }
 
-        var suggestion = GetAddressSuggestions(AddressBox.Text).FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(suggestion))
+        var normalizedQuery = RegistryPath.NormalizeForSuggestion(AddressBox.Text);
+        var matchingSuggestions = GetAddressSuggestions(AddressBox.Text)
+            .Where(suggestion => suggestion.StartsWith(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matchingSuggestions.Length != 1)
         {
             return;
         }
 
-        AddressBox.Text = suggestion;
+        AddressBox.Text = matchingSuggestions[0];
         e.Handled = true;
     }
 
@@ -446,7 +452,7 @@ public sealed partial class HomePage : Page
 
         if (string.IsNullOrEmpty(_currentPath.SubKey))
         {
-            ShowStatus("Root hive protected", "Root hives cannot be deleted.", InfoBarSeverity.Warning);
+            ShowStatus("Root hive protected", LocalizationService.Get("status.root-hive-protected.delete-message", "Root hives cannot be deleted."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -464,7 +470,7 @@ public sealed partial class HomePage : Page
             refreshAfterWrite: false);
         SelectPath(parent);
         LoadRoots();
-        ShowStatus("Key deleted", $"Backup saved to {backupPath}", InfoBarSeverity.Success);
+        ShowStatus("Key deleted", LocalizationService.Format("status.backup-saved", "Backup saved to {0}", backupPath), InfoBarSeverity.Success);
     }
 
     private async void RenameKey_Click(object sender, RoutedEventArgs e)
@@ -546,7 +552,7 @@ public sealed partial class HomePage : Page
 
         if (!TryParseHexBytes(valueText, out var bytes))
         {
-            ShowStatus("Invalid binary data", "Use hex bytes separated by spaces, commas, or new lines.", InfoBarSeverity.Error);
+            ShowStatus("Invalid binary data", LocalizationService.Get("status.invalid-binary-data.message", "Use hex bytes separated by spaces, commas, or new lines."), InfoBarSeverity.Error);
             return;
         }
 
@@ -587,7 +593,7 @@ public sealed partial class HomePage : Page
     {
         if (ValueList.SelectedItem is not RegistryValueRow row)
         {
-            ShowStatus("No value selected", "Select a value in the details pane before editing.", InfoBarSeverity.Warning);
+            ShowStatus("No value selected", LocalizationService.Get("status.no-value-selected.edit-message", "Select a value in the details pane before editing."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -619,7 +625,7 @@ public sealed partial class HomePage : Page
     {
         if (_currentPath is null || ValueList.SelectedItem is not RegistryValueRow row)
         {
-            ShowStatus("No value selected", "Select a value in the details pane before deleting.", InfoBarSeverity.Warning);
+            ShowStatus("No value selected", LocalizationService.Get("status.no-value-selected.delete-message", "Select a value in the details pane before deleting."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -633,7 +639,7 @@ public sealed partial class HomePage : Page
         await RunWriteAsync(
             "Value deleted",
             () => _browser.DeleteValue(_currentPath, row.Name, GetCurrentView()));
-        ShowStatus("Value deleted", $"Backup saved to {backupPath}", InfoBarSeverity.Success);
+        ShowStatus("Value deleted", LocalizationService.Format("status.backup-saved", "Backup saved to {0}", backupPath), InfoBarSeverity.Success);
     }
 
     private async void RenameValue_Click(object sender, RoutedEventArgs e)
@@ -656,7 +662,7 @@ public sealed partial class HomePage : Page
     {
         if (ValueList.SelectedItem is not RegistryValueRow row)
         {
-            ShowStatus("No value selected", "Select a value before copying value data.", InfoBarSeverity.Warning);
+            ShowStatus("No value selected", LocalizationService.Get("status.no-value-selected.copy-message", "Select a value before copying value data."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -674,7 +680,7 @@ public sealed partial class HomePage : Page
         if (_currentPath is null)
         {
             MonitorCommand.IsChecked = false;
-            ShowStatus("No key loaded", "Open a key before starting live monitoring.", InfoBarSeverity.Warning);
+            ShowStatus("No key loaded", LocalizationService.Get("status.no-key-loaded.monitor-message", "Open a key before starting live monitoring."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -682,15 +688,15 @@ public sealed partial class HomePage : Page
         {
             _monitorSignature = GetSnapshotSignature(_currentSnapshot);
             _monitorTimer.Start();
-            ShowStatus("Monitoring started", $"Watching {_currentPath} every 2 seconds.", InfoBarSeverity.Informational);
-            UpdateStatus($"Monitoring {_currentPath}");
+            ShowStatus("Monitoring started", LocalizationService.Format("status.monitoring-started.message", "Watching {0} every 2 seconds.", _currentPath), InfoBarSeverity.Informational);
+            UpdateStatus(LocalizationService.Format("status.monitoring-current", "Monitoring {0}", _currentPath));
         }
         else
         {
             _monitorTimer.Stop();
             _monitorSignature = null;
-            ShowStatus("Monitoring paused", "Live refresh is paused for the current key.", InfoBarSeverity.Informational);
-            UpdateStatus(_currentPath is null ? "Ready" : $"Loaded {_currentPath}");
+            ShowStatus("Monitoring paused", LocalizationService.Get("status.monitoring-paused.message", "Live refresh is paused for the current key."), InfoBarSeverity.Informational);
+            UpdateStatus(_currentPath is null ? LocalizationService.Get("status.ready", "Ready") : LocalizationService.Format("status.loaded", "Loaded {0}", _currentPath));
         }
 
         UpdateCommandState();
@@ -706,18 +712,18 @@ public sealed partial class HomePage : Page
         var isFavorite = IsCurrentPathFavorite();
         if (isFavorite && RegistryFavoriteStore.Remove(_currentPath))
         {
-            ShowStatus("Favorite removed", "This key was removed from Favorites.", InfoBarSeverity.Informational);
-            UpdateStatus($"Removed favorite {_currentPath}");
+            ShowStatus("Favorite removed", LocalizationService.Get("status.favorite-removed.message", "This key was removed from Favorites."), InfoBarSeverity.Informational);
+            UpdateStatus(LocalizationService.Format("status.favorite-removed.current", "Removed favorite {0}", _currentPath));
         }
         else if (RegistryFavoriteStore.Add(_currentPath))
         {
-            ShowStatus("Favorite added", "Open Favorites from the left rail to jump back to this key.", InfoBarSeverity.Success);
-            UpdateStatus($"Added favorite {_currentPath}");
+            ShowStatus("Favorite added", LocalizationService.Get("status.favorite-added.message", "Open Favorites from the left rail to jump back to this key."), InfoBarSeverity.Success);
+            UpdateStatus(LocalizationService.Format("status.favorite-added.current", "Added favorite {0}", _currentPath));
         }
         else
         {
-            ShowStatus("Already a favorite", "This key is already in Favorites.", InfoBarSeverity.Informational);
-            UpdateStatus($"Favorite already saved: {_currentPath}");
+            ShowStatus("Already a favorite", LocalizationService.Get("status.already-a-favorite.message", "This key is already in Favorites."), InfoBarSeverity.Informational);
+            UpdateStatus(LocalizationService.Format("status.already-a-favorite.current", "Favorite already saved: {0}", _currentPath));
         }
 
         UpdateCommandState();
@@ -789,7 +795,7 @@ public sealed partial class HomePage : Page
         var file = await picker.PickSingleFileAsync();
         if (file is null)
         {
-            UpdateStatus("Load hive canceled");
+            UpdateStatus(LocalizationService.Get("status.load-hive-canceled", "Load hive canceled"));
             return;
         }
 
@@ -797,7 +803,7 @@ public sealed partial class HomePage : Page
         var mountName = await PromptTextAsync("Load Hive", "Mount name under HKLM or HKU", Path.GetFileNameWithoutExtension(file.Name));
         if (string.IsNullOrWhiteSpace(mountName))
         {
-            UpdateStatus("Load hive canceled");
+            UpdateStatus(LocalizationService.Get("status.load-hive-canceled", "Load hive canceled"));
             return;
         }
 
@@ -806,11 +812,11 @@ public sealed partial class HomePage : Page
             var loadedPath = await Task.Run(() => _browser.LoadHive(targetHive, mountName.Trim(), file.Path, GetCurrentView()));
             _readCache.Clear();
             SelectPath(loadedPath);
-            ShowStatus("Hive loaded", $"Mounted {file.Path} at {loadedPath}.", InfoBarSeverity.Success);
+            ShowStatus("Hive loaded", LocalizationService.Format("status.hive-loaded.message", "Mounted {0} at {1}.", file.Path, loadedPath), InfoBarSeverity.Success);
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex) || ex is System.ComponentModel.Win32Exception)
         {
-            ShowStatus("Load hive failed", $"{ex.Message} Run elevated and choose a hive file not currently in use.", InfoBarSeverity.Error);
+            ShowStatus("Load hive failed", LocalizationService.Format("status.load-hive-failed.message", "{0} Run elevated and choose a hive file not currently in use.", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -838,7 +844,7 @@ public sealed partial class HomePage : Page
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex) || ex is System.ComponentModel.Win32Exception)
         {
-            ShowStatus("Unload hive failed", $"{ex.Message} Run elevated and close any handles opened inside the mounted hive.", InfoBarSeverity.Error);
+            ShowStatus("Unload hive failed", LocalizationService.Format("status.unload-hive-failed.message", "{0} Run elevated and close any handles opened inside the mounted hive.", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -868,6 +874,18 @@ public sealed partial class HomePage : Page
 
     public void ImportRegistryFile(StorageFile file)
     {
+        if (!IsLoaded || XamlRoot is null)
+        {
+            RoutedEventHandler? onLoaded = null;
+            onLoaded = (_, _) =>
+            {
+                Loaded -= onLoaded;
+                _ = ImportRegistryFileAsync(file);
+            };
+            Loaded += onLoaded;
+            return;
+        }
+
         _ = ImportRegistryFileAsync(file);
     }
 
@@ -880,17 +898,24 @@ public sealed partial class HomePage : Page
             var confirmed = await ConfirmImportAsync(file.Name, document);
             if (!confirmed)
             {
-                UpdateStatus($"Import canceled: {file.Name}");
+                UpdateStatus(LocalizationService.Format("import.canceled", "Import canceled: {0}", file.Name));
                 return;
             }
 
-            await RunWriteAsync(
-                "Import applied",
-                () => _browser.ApplyImport(document, GetCurrentView()));
+            var applied = await RunWriteAsync(
+                LocalizationService.Get("import.applied", "Import applied"),
+                () => _browser.ApplyImport(document, GetCurrentView()),
+                captureWriteJournal: true);
+            ShowStatus(
+                applied ? LocalizationService.Get("import.success", "Import successful") : LocalizationService.Get("status.import-failed", "Import failed"),
+                applied
+                    ? LocalizationService.Get("import.success.message", "{0} operations applied from {1}.").Replace("{0}", document.Operations.Count.ToString()).Replace("{1}", file.Name)
+                    : LocalizationService.Get("import.no-changes", "No changes were applied from {0}.").Replace("{0}", file.Name),
+                applied ? InfoBarSeverity.Success : InfoBarSeverity.Error);
         }
-        catch (Exception ex) when (IsRecoverableRegistryException(ex) || ex is FormatException)
+        catch (Exception ex)
         {
-            ShowStatus("Import failed", ex.Message, InfoBarSeverity.Error);
+            ShowStatus(LocalizationService.Get("status.import-failed", "Import failed"), ex.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -902,7 +927,7 @@ public sealed partial class HomePage : Page
                 ? _browser.ExportRegTree(path, GetCurrentView())
                 : _browser.ExportReg(path, GetCurrentView());
             CopyText(export);
-            ShowStatus("Export copied", includeSubtree ? "The key and subtree were copied as .reg text." : "The selected key values were copied as .reg text.", InfoBarSeverity.Success);
+            ShowStatus("Export copied", includeSubtree ? LocalizationService.Get("status.export-copied.subtree-message", "The key and subtree were copied as .reg text.") : LocalizationService.Get("status.export-copied.values-message", "The selected key values were copied as .reg text."), InfoBarSeverity.Success);
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex))
         {
@@ -961,7 +986,7 @@ public sealed partial class HomePage : Page
             if (ValueList.SelectedItem is RegistryValueRow selected)
             {
                 CopyText(selected.DisplayName);
-                UpdateStatus($"Copied value name {selected.DisplayName}");
+                UpdateStatus(LocalizationService.Format("status.copy-value-name", "Copied value name {0}", selected.DisplayName));
             }
         }));
         flyout.Items.Add(CreateMenuItem("Copy data", () => CopyValue_Click(target, new RoutedEventArgs())));
@@ -1009,12 +1034,12 @@ public sealed partial class HomePage : Page
         flyout.Items.Add(CreateMenuItem("Copy key path", () =>
         {
             CopyText(menuPath.ToString());
-            UpdateStatus($"Copied path {menuPath}");
+            UpdateStatus(LocalizationService.Format("status.copy-path", "Copied path {0}", menuPath));
         }));
         flyout.Items.Add(CreateMenuItem("Favorite key", () =>
         {
             RegistryFavoriteStore.Add(menuPath);
-            ShowStatus("Favorite added", "Open Favorites from the left rail to jump back to this key.", InfoBarSeverity.Success);
+            ShowStatus("Favorite added", LocalizationService.Get("status.favorite-added.message", "Open Favorites from the left rail to jump back to this key."), InfoBarSeverity.Success);
         }));
         flyout.Items.Add(CreateMenuItem("Copy key export", () => CopyExport(menuPath, includeSubtree: false)));
         flyout.Items.Add(CreateMenuItem("Save key export", async () => await SaveExportAsync(menuPath, includeSubtree: false)));
@@ -1034,11 +1059,11 @@ public sealed partial class HomePage : Page
     {
         if (ValueList.SelectedItem is RegistryValueRow row)
         {
-            UpdateStatus($"{row.DisplayName} · {row.Kind}");
+            UpdateStatus(LocalizationService.Format("status.value-summary", "{0} · {1}", row.DisplayName, row.Kind));
         }
         else
         {
-            UpdateStatus(_currentPath is null ? "Ready" : $"Loaded {_currentPath}");
+            UpdateStatus(_currentPath is null ? LocalizationService.Get("status.ready", "Ready") : LocalizationService.Format("status.loaded", "Loaded {0}", _currentPath));
         }
 
         UpdateCommandState();
@@ -1115,8 +1140,8 @@ public sealed partial class HomePage : Page
         var currentValue = creating ? string.Empty : row!.DisplayData;
         var isExpandable = row?.Kind == nameof(RegistryValueKind.ExpandString);
         var value = isExpandable
-            ? await PromptExpandableStringAsync($"Edit {row!.DisplayName}", currentValue)
-            : await PromptTextAsync(creating ? "New String Value" : $"Edit {row!.DisplayName}", "Value data", currentValue);
+            ? await PromptExpandableStringAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row!.DisplayName), currentValue)
+            : await PromptTextAsync(creating ? LocalizationService.Get("editor.new-string", "New String Value") : LocalizationService.Format("editor.edit-title", "Edit {0}", row!.DisplayName), LocalizationService.Get("editor.value-data", "Value data"), currentValue);
         if (value is null)
         {
             return;
@@ -1124,7 +1149,7 @@ public sealed partial class HomePage : Page
 
         var kind = isExpandable ? RegistryValueKind.ExpandString : RegistryValueKind.String;
         await RunWriteAsync(
-            creating ? "String value written" : "String value updated",
+            LocalizationService.Get(creating ? "status.string-value-written" : "status.string-value-updated", creating ? "String value written" : "String value updated"),
             () => _browser.SetValue(_currentPath, name.Trim(), kind, value, GetCurrentView()));
     }
 
@@ -1136,14 +1161,14 @@ public sealed partial class HomePage : Page
         }
 
         var initial = Convert.ToUInt64(row.Raw.Data, System.Globalization.CultureInfo.InvariantCulture);
-        var value = await PromptIntegerValueAsync($"Edit {row.DisplayName}", 32, initial);
+        var value = await PromptIntegerValueAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row.DisplayName), 32, initial);
         if (value is null)
         {
             return;
         }
 
         await RunWriteAsync(
-            "DWORD value updated",
+            LocalizationService.Get("status.dword-value-updated", "DWORD value updated"),
             () => _browser.SetValue(_currentPath, row.Name, RegistryValueKind.DWord, unchecked((int)(uint)value.Value), GetCurrentView()));
     }
 
@@ -1155,14 +1180,14 @@ public sealed partial class HomePage : Page
         }
 
         var initial = Convert.ToUInt64(row.Raw.Data, System.Globalization.CultureInfo.InvariantCulture);
-        var value = await PromptIntegerValueAsync($"Edit {row.DisplayName}", 64, initial);
+        var value = await PromptIntegerValueAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row.DisplayName), 64, initial);
         if (value is null)
         {
             return;
         }
 
         await RunWriteAsync(
-            "QWORD value updated",
+            LocalizationService.Get("status.qword-value-updated", "QWORD value updated"),
             () => _browser.SetValue(_currentPath, row.Name, RegistryValueKind.QWord, value.Value, GetCurrentView()));
     }
 
@@ -1173,7 +1198,7 @@ public sealed partial class HomePage : Page
             return;
         }
 
-        var valueText = await PromptBinaryTextAsync($"Edit {row.DisplayName}", row.DisplayData);
+        var valueText = await PromptBinaryTextAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row.DisplayName), row.DisplayData);
         if (valueText is null)
         {
             return;
@@ -1181,12 +1206,12 @@ public sealed partial class HomePage : Page
 
         if (!TryParseHexBytes(valueText, out var bytes))
         {
-            ShowStatus("Invalid binary data", "Use hex bytes separated by spaces, commas, or new lines.", InfoBarSeverity.Error);
+            ShowStatus("Invalid binary data", LocalizationService.Get("status.invalid-binary-data.message", "Use hex bytes separated by spaces, commas, or new lines."), InfoBarSeverity.Error);
             return;
         }
 
         await RunWriteAsync(
-            "Binary value updated",
+            LocalizationService.Get("status.binary-value-updated", "Binary value updated"),
             () => _browser.SetValue(_currentPath, row.Name, RegistryValueKind.Binary, bytes, GetCurrentView()));
     }
 
@@ -1198,7 +1223,7 @@ public sealed partial class HomePage : Page
         }
 
         var initial = row.Raw.Data is string[] values ? string.Join(Environment.NewLine, values) : row.DisplayData;
-        var valueText = await PromptMultilineTextAsync($"Edit {row.DisplayName}", "One string per line", initial);
+        var valueText = await PromptMultilineTextAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row.DisplayName), LocalizationService.Get("editor.one-string-per-line", "One string per line"), initial);
         if (valueText is null)
         {
             return;
@@ -1209,7 +1234,7 @@ public sealed partial class HomePage : Page
             .Split('\n', StringSplitOptions.None);
 
         await RunWriteAsync(
-            "Multi-string value updated",
+            LocalizationService.Get("status.multi-string-value-updated", "Multi-string value updated"),
             () => _browser.SetValue(_currentPath, row.Name, RegistryValueKind.MultiString, newValues, GetCurrentView()));
     }
 
@@ -1220,7 +1245,7 @@ public sealed partial class HomePage : Page
             return;
         }
 
-        var valueText = await PromptTextAsync($"Edit {row.DisplayName}", "Value data", row.DisplayData);
+        var valueText = await PromptTextAsync(LocalizationService.Format("editor.edit-title", "Edit {0}", row.DisplayName), LocalizationService.Get("editor.value-data", "Value data"), row.DisplayData);
         if (valueText is null)
         {
             return;
@@ -1235,7 +1260,7 @@ public sealed partial class HomePage : Page
     {
         if (_currentPath is null || ValueList.SelectedItem is not RegistryValueRow row)
         {
-            ShowStatus("No value selected", "Select a value before renaming.", InfoBarSeverity.Warning);
+            ShowStatus("No value selected", LocalizationService.Get("status.no-value-selected.rename-message", "Select a value before renaming."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -1249,7 +1274,7 @@ public sealed partial class HomePage : Page
         var normalized = newName.Trim();
         if (string.IsNullOrEmpty(normalized) && !string.IsNullOrEmpty(row.Name))
         {
-            ShowStatus("Invalid value name", "Use @ in the CLI for the default value; the app keeps value rename targets named for safety.", InfoBarSeverity.Warning);
+            ShowStatus("Invalid value name", LocalizationService.Get("status.invalid-value-name.message", "Use @ in the CLI for the default value; the app keeps value rename targets named for safety."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -1262,7 +1287,7 @@ public sealed partial class HomePage : Page
     {
         if (string.IsNullOrEmpty(path.SubKey))
         {
-            ShowStatus("Root hive protected", "Root hives cannot be renamed.", InfoBarSeverity.Warning);
+            ShowStatus("Root hive protected", LocalizationService.Get("status.root-hive-protected.rename-message", "Root hives cannot be renamed."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -1286,11 +1311,18 @@ public sealed partial class HomePage : Page
         }
     }
 
-    private async Task RunWriteAsync(string successTitle, Action action, bool refreshAfterWrite = true)
+    private async Task<bool> RunWriteAsync(
+        string successTitle,
+        Action action,
+        bool refreshAfterWrite = true,
+        bool captureWriteJournal = true)
     {
         try
         {
-            CaptureWriteJournalEntry(successTitle);
+            if (captureWriteJournal)
+            {
+                CaptureWriteJournalEntry(successTitle);
+            }
             action();
             _readCache.Clear();
             InvalidateRealizedTreePath(_currentPath);
@@ -1301,8 +1333,11 @@ public sealed partial class HomePage : Page
 
             ShowStatus(
                 successTitle,
-                refreshAfterWrite ? "The key was refreshed after the write." : "The registry cache was invalidated after the write.",
+                refreshAfterWrite
+                    ? LocalizationService.Get("status.write-refreshed", "The key was refreshed after the write.")
+                    : LocalizationService.Get("status.write-cache-invalidated", "The registry cache was invalidated after the write."),
                 InfoBarSeverity.Success);
+            return true;
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex))
         {
@@ -1310,17 +1345,24 @@ public sealed partial class HomePage : Page
                 ? "Access denied. Run the app elevated for protected hives, or choose a writable key under HKCU."
                 : ex.Message;
             ShowStatus("Write failed", message, InfoBarSeverity.Error);
+            return false;
         }
     }
 
     private async Task<string> WriteBackupAsync(RegistryPath path, bool includeSubtree)
     {
-        var backupsFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Backups", CreationCollisionOption.OpenIfExists);
+        var backupsFolder = Path.Combine(RegistryAppData.DataDirectory, "Backups");
+        Directory.CreateDirectory(backupsFolder);
         var fileName = $"registry-backup-{DateTimeOffset.Now:yyyyMMdd-HHmmss}-{SanitizeFileName(path)}.reg";
-        var file = await backupsFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
+        var filePath = Path.Combine(backupsFolder, fileName);
+        var sequence = 1;
+        while (File.Exists(filePath))
+        {
+            filePath = Path.Combine(backupsFolder, $"{Path.GetFileNameWithoutExtension(fileName)} ({sequence++}){Path.GetExtension(fileName)}");
+        }
         var content = includeSubtree ? _browser.ExportRegTree(path, GetCurrentView()) : _browser.ExportReg(path, GetCurrentView());
-        await FileIO.WriteTextAsync(file, content);
-        return file.Path;
+        await File.WriteAllTextAsync(filePath, content);
+        return filePath;
     }
 
     private static string SanitizeFileName(RegistryPath path)
@@ -1381,7 +1423,7 @@ public sealed partial class HomePage : Page
                 _monitorSignature = GetSnapshotSignature(_currentSnapshot);
             }
 
-            UpdateStatus($"Loaded {_currentPath}");
+            UpdateStatus(LocalizationService.Format("status.loaded", "Loaded {0}", _currentPath));
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex))
         {
@@ -1439,23 +1481,23 @@ public sealed partial class HomePage : Page
         ValueList.ItemsSource = rows;
         EmptyValuesPanel.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyValuesText.Text = string.IsNullOrWhiteSpace(filter) && string.IsNullOrEmpty(typeFilter)
-            ? "This key has no values."
-            : "No values match the current filters.";
-        KeyCountText.Text = FormatCount(_currentSnapshot.SubKeyCount, "subkey", "subkeys");
+            ? LocalizationService.Get("home.empty-values", "This key has no values.")
+            : LocalizationService.Get("home.no-values-filter", "No values match the current filters.");
+        KeyCountText.Text = FormatCount(_currentSnapshot.SubKeyCount, "count.subkeys");
         ValueCountText.Text = string.IsNullOrWhiteSpace(filter) && string.IsNullOrEmpty(typeFilter)
-            ? FormatCount(_currentSnapshot.ValueCount, "value", "values")
-            : $"{rows.Length:N0} / {_currentSnapshot.ValueCount:N0} shown";
+            ? FormatCount(_currentSnapshot.ValueCount, "count.values")
+            : LocalizationService.Format("count.values-shown", "{0} / {1} shown", rows.Length, _currentSnapshot.ValueCount);
         UpdateCommandState();
     }
 
     private string GetSelectedValueKindFilter()
     {
-        if (ValueTypeFilter?.SelectedItem is not ComboBoxItem item || item.Content is not string text || text == "All types")
+        if (ValueTypeFilter?.SelectedItem is not ComboBoxItem item || string.Equals(item.Tag as string, "filter.all-types", StringComparison.Ordinal))
         {
             return string.Empty;
         }
 
-        return text;
+        return item.Content as string ?? string.Empty;
     }
 
     private void AddRecent(RegistryPath path)
@@ -1471,18 +1513,41 @@ public sealed partial class HomePage : Page
 
     private string[] GetAddressSuggestions(string query)
     {
+        var normalizedQuery = RegistryPath.NormalizeForSuggestion(query);
         var roots = _browser.GetRootPaths().Select(path => path.ToString());
         var favorites = RegistryFavoriteStore.GetFavorites().Select(path => path.ToString());
         var recent = _recent.Select(path => path.ToString());
+        var current = _currentPath is null ? Array.Empty<string>() : new[] { _currentPath.ToString() };
 
         return roots.Concat(favorites)
             .Concat(recent)
+            .Concat(current)
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Where(path => string.IsNullOrEmpty(query) || path.Contains(query, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(path => path.Length)
+            .Where(path => string.IsNullOrEmpty(normalizedQuery)
+                || path.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase)
+                || GetLocationName(RegistryPath.Parse(path)).Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+            .OrderBy(path => GetAddressSuggestionRank(path, normalizedQuery, query))
+            .ThenBy(path => path.Length)
             .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
             .Take(12)
             .ToArray();
+    }
+
+    private static int GetAddressSuggestionRank(string path, string normalizedQuery, string originalQuery)
+    {
+        if (path.Equals(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+
+        if (path.StartsWith(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+        {
+            return 1;
+        }
+
+        return GetLocationName(RegistryPath.Parse(path)).StartsWith(originalQuery.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? 2
+            : 3;
     }
 
     private static string GetLocationName(RegistryPath path)
@@ -1496,14 +1561,10 @@ public sealed partial class HomePage : Page
         return string.IsNullOrEmpty(leaf) ? path.ToString() : leaf;
     }
 
-    private static string FormatCount(int count, string singular, string plural)
+    private static string FormatCount(int count, string keyPrefix)
     {
-        return count switch
-        {
-            0 => $"No {plural}",
-            1 => $"1 {singular}",
-            _ => $"{count:N0} {plural}"
-        };
+        var suffix = count switch { 0 => "none", 1 => "one", _ => "many" };
+        return LocalizationService.Format($"{keyPrefix}.{suffix}", "{0}", count);
     }
 
     private RegistryViewMode GetCurrentView()
@@ -1557,7 +1618,7 @@ public sealed partial class HomePage : Page
                 _currentSnapshot = snapshot;
                 ApplyValueFilter();
                 ShowStatus("Registry change detected", changeText, InfoBarSeverity.Informational);
-                UpdateStatus($"Monitoring update: {changeText}");
+                UpdateStatus(LocalizationService.Format("status.monitoring-update", "Monitoring update: {0}", changeText));
             }
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex))
@@ -1589,7 +1650,7 @@ public sealed partial class HomePage : Page
         CopyValueMenuItem.IsEnabled = hasValue;
         FavoriteCommand.IsEnabled = hasKey;
         var isFavorite = IsCurrentPathFavorite();
-        FavoriteCommand.Label = "Favorite";
+        FavoriteCommand.Label = LocalizationService.Get("action.favorite", "Favorite");
         FavoriteCommand.IsChecked = isFavorite;
         FavoriteCommand.Icon = new SymbolIcon(Symbol.Favorite);
         CopyPathCommand.IsEnabled = hasKey;
@@ -1599,15 +1660,15 @@ public sealed partial class HomePage : Page
         PermissionsMenuItem.IsEnabled = hasKey;
         MonitorCommand.IsEnabled = hasKey;
         MonitorMenuItem.IsEnabled = hasKey;
-        MonitorCommand.Label = MonitorCommand.IsChecked == true ? "Monitoring" : "Monitor";
+        MonitorCommand.Label = LocalizationService.Get(MonitorCommand.IsChecked == true ? "action.monitoring" : "action.monitor", MonitorCommand.IsChecked == true ? "Monitoring" : "Monitor");
         if (MonitorCommand.IsChecked == true)
         {
-            MonitorMenuItem.Text = "Stop monitoring";
+            MonitorMenuItem.Text = LocalizationService.Get("action.stop-monitoring", "Stop monitoring");
             MonitorMenuItem.Icon = new SymbolIcon(Symbol.Cancel);
         }
         else
         {
-            MonitorMenuItem.Text = "Monitor";
+            MonitorMenuItem.Text = LocalizationService.Get("action.monitor", "Monitor");
             MonitorMenuItem.Icon = new SymbolIcon(Symbol.View);
         }
         LoadHiveCommand.IsEnabled = true;
@@ -1668,6 +1729,43 @@ public sealed partial class HomePage : Page
         };
     }
 
+    private void ApplyLocalizedCommandLabels()
+    {
+        RefreshCommand.Label = LocalizationService.Get("action.refresh", "Refresh");
+        FindCommand.Label = LocalizationService.Get("action.find", "Find");
+        EditCommand.Label = LocalizationService.Get("action.edit", "Edit");
+        DeleteValueCommand.Label = LocalizationService.Get("action.delete", "Delete");
+        FavoriteCommand.Label = LocalizationService.Get("action.favorite", "Favorite");
+        CopyPathCommand.Label = LocalizationService.Get("action.copy-path", "Copy path");
+        CopyValueCommand.Label = LocalizationService.Get("action.copy-value", "Copy value");
+        PermissionsCommand.Label = LocalizationService.Get("action.permissions", "Permissions");
+        MonitorCommand.Label = LocalizationService.Get("action.monitor", "Monitor");
+        ExportCommand.Label = LocalizationService.Get("action.export", "Export");
+        ImportCommand.Label = LocalizationService.Get("action.import", "Import");
+        LoadHiveCommand.Label = LocalizationService.Get("action.load-hive", "Load hive");
+        UnloadHiveCommand.Label = LocalizationService.Get("action.unload-hive", "Unload hive");
+        OverflowCommand.Label = LocalizationService.Get("action.more", "More");
+        CopyValueMenuItem.Text = LocalizationService.Get("action.copy-value", "Copy value");
+        PermissionsMenuItem.Text = LocalizationService.Get("action.permissions", "Permissions");
+        MonitorMenuItem.Text = LocalizationService.Get("action.monitor", "Monitor");
+        ExportMenuItem.Text = LocalizationService.Get("action.export", "Export");
+        ImportMenuItem.Text = LocalizationService.Get("action.import", "Import");
+        LoadHiveMenuItem.Text = LocalizationService.Get("action.load-hive", "Load hive");
+        UnloadHiveMenuItem.Text = LocalizationService.Get("action.unload-hive", "Unload hive");
+
+        if (ValueTypeFilter.Items.OfType<ComboBoxItem>().FirstOrDefault(item => string.Equals(item.Tag as string, "filter.all-types", StringComparison.Ordinal)) is { } allTypes)
+        {
+            allTypes.Content = LocalizationService.Get("filter.all-types", "All types");
+        }
+
+        var selectedTypeIndex = ValueTypeFilter.SelectedIndex;
+        if (selectedTypeIndex >= 0)
+        {
+            ValueTypeFilter.SelectedIndex = -1;
+            ValueTypeFilter.SelectedIndex = selectedTypeIndex;
+        }
+    }
+
     private void ApplyToolbarDetail()
     {
         if (RegistryCommandBar is null)
@@ -1716,9 +1814,33 @@ public sealed partial class HomePage : Page
 
     private MenuFlyoutItem CreateMenuItem(string text, Action action, bool isEnabled = true)
     {
-        var item = new MenuFlyoutItem { Text = text, IsEnabled = isEnabled };
+        var item = new MenuFlyoutItem
+        {
+            Text = text,
+            IsEnabled = isEnabled,
+            Icon = GetContextMenuIcon(text)
+        };
         item.Click += (_, _) => action();
         return item;
+    }
+
+    private static IconElement? GetContextMenuIcon(string text)
+    {
+        Symbol? symbol = text switch
+        {
+            "Open" => Symbol.OpenFile,
+            "Edit" => Symbol.Edit,
+            "Delete" or "Delete key" => Symbol.Delete,
+            "Permissions" => Symbol.Permissions,
+            _ when text.StartsWith("New ", StringComparison.Ordinal) => Symbol.Add,
+            _ when text.StartsWith("Rename", StringComparison.Ordinal) => Symbol.Edit,
+            _ when text.StartsWith("Copy", StringComparison.Ordinal) => Symbol.Copy,
+            _ when text.StartsWith("Save", StringComparison.Ordinal) => Symbol.Save,
+            _ when text.StartsWith("Favorite", StringComparison.Ordinal) => Symbol.Favorite,
+            _ => null
+        };
+
+        return symbol is null ? null : new SymbolIcon(symbol.Value);
     }
 
     private static FlyoutShowOptions GetFlyoutOptions(UIElement sender, ContextRequestedEventArgs args)
@@ -1826,7 +1948,7 @@ public sealed partial class HomePage : Page
             var file = await picker.PickSaveFileAsync();
             if (file is null)
             {
-                UpdateStatus("Export canceled");
+                UpdateStatus(LocalizationService.Get("status.export-canceled", "Export canceled"));
                 return;
             }
 
@@ -1882,7 +2004,7 @@ public sealed partial class HomePage : Page
             : row.DisplayData;
 
         CopyText($"reg add \"{_currentPath}\" {valueName} /t {type} /d \"{data}\" /f");
-        UpdateStatus($"Copied reg add command for {row.DisplayName}");
+        UpdateStatus(LocalizationService.Format("status.copy-reg-add", "Copied reg add command for {0}", row.DisplayName));
     }
 
     private void CopyPowerShellSetCommand()
@@ -1916,7 +2038,7 @@ public sealed partial class HomePage : Page
         };
 
         CopyText($"New-Item -Path {QuotePowerShell(path)} -Force | Out-Null; New-ItemProperty -Path {QuotePowerShell(path)} {namePart} -PropertyType {type} {valuePart} -Force");
-        UpdateStatus($"Copied PowerShell command for {row.DisplayName}");
+        UpdateStatus(LocalizationService.Format("status.copy-powershell", "Copied PowerShell command for {0}", row.DisplayName));
     }
 
     private async Task ShowPermissionsAsync(RegistryPath path)
@@ -1990,13 +2112,13 @@ public sealed partial class HomePage : Page
                 }
             };
 
-            var dialog = CreateDialog("Permissions", content, "Copy ACL");
+            var dialog = CreateDialog(LocalizationService.Get("dialog.permissions", "Permissions"), content, LocalizationService.Get("action.copy-acl", "Copy ACL"));
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
                 var text = string.Join(Environment.NewLine, summary.Rules.Select(rule => $"{rule.Identity}\t{rule.AccessType}\t{rule.Rights}\t{(rule.IsInherited ? "Inherited" : "Explicit")}"));
                 CopyText($"Path: {summary.Path}{Environment.NewLine}Owner: {summary.Owner}{Environment.NewLine}{text}");
-                ShowStatus("Permissions copied", "The ACL summary was copied to the clipboard.", InfoBarSeverity.Success);
+                ShowStatus("Permissions copied", LocalizationService.Get("status.permissions-copied.message", "The ACL summary was copied to the clipboard."), InfoBarSeverity.Success);
             }
         }
         catch (Exception ex)
@@ -2021,21 +2143,21 @@ public sealed partial class HomePage : Page
     {
         if (_currentPath is null)
         {
-            ShowStatus("No key loaded", "Open a registry key before searching.", InfoBarSeverity.Warning);
+            ShowStatus("No key loaded", LocalizationService.Get("status.no-key-loaded.search-message", "Open a registry key before searching."), InfoBarSeverity.Warning);
             return;
         }
 
         var queryBox = new TextBox
         {
-            Header = "Find what",
-            PlaceholderText = "Key, value, or data",
+            Header = LocalizationService.Get("find.what", "Find what"),
+            PlaceholderText = LocalizationService.Get("find.placeholder", "Key, value, or data"),
             Text = _lastSearchOptions?.Query ?? ValueFilterBox.Text ?? string.Empty
         };
-        var keysBox = new CheckBox { Content = "Keys", IsChecked = _lastSearchOptions?.MatchKeys ?? true };
-        var valueNamesBox = new CheckBox { Content = "Value names", IsChecked = _lastSearchOptions?.MatchValueNames ?? true };
-        var valueDataBox = new CheckBox { Content = "Value data", IsChecked = _lastSearchOptions?.MatchValueData ?? true };
-        var matchCaseBox = new CheckBox { Content = "Match case", IsChecked = _lastSearchOptions?.MatchCase ?? false };
-        var wholeStringBox = new CheckBox { Content = "Match whole string only", IsChecked = _lastSearchOptions?.MatchWholeString ?? false };
+        var keysBox = new CheckBox { Content = LocalizationService.Get("find.keys", "Keys"), IsChecked = _lastSearchOptions?.MatchKeys ?? true };
+        var valueNamesBox = new CheckBox { Content = LocalizationService.Get("find.value-names", "Value names"), IsChecked = _lastSearchOptions?.MatchValueNames ?? true };
+        var valueDataBox = new CheckBox { Content = LocalizationService.Get("find.value-data", "Value data"), IsChecked = _lastSearchOptions?.MatchValueData ?? true };
+        var matchCaseBox = new CheckBox { Content = LocalizationService.Get("find.match-case", "Match case"), IsChecked = _lastSearchOptions?.MatchCase ?? false };
+        var wholeStringBox = new CheckBox { Content = LocalizationService.Get("find.whole-string", "Match whole string only"), IsChecked = _lastSearchOptions?.MatchWholeString ?? false };
 
         var content = new StackPanel
         {
@@ -2046,7 +2168,7 @@ public sealed partial class HomePage : Page
                 queryBox,
                 new TextBlock
                 {
-                    Text = "Look at",
+                    Text = LocalizationService.Get("find.look-at", "Look at"),
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
                 },
                 new StackPanel
@@ -2060,7 +2182,7 @@ public sealed partial class HomePage : Page
             }
         };
 
-        var dialog = CreateDialog("Find", content, "Find next");
+        var dialog = CreateDialog(LocalizationService.Get("action.find", "Find"), content, LocalizationService.Get("find.next", "Find next"));
         var result = await dialog.ShowAsync();
         if (result != ContentDialogResult.Primary)
         {
@@ -2070,7 +2192,7 @@ public sealed partial class HomePage : Page
         var query = queryBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(query))
         {
-            ShowStatus("Search needs text", "Enter text to find in keys, value names, or value data.", InfoBarSeverity.Warning);
+            ShowStatus("Search needs text", LocalizationService.Get("status.search-needs-text.message", "Enter text to find in keys, value names, or value data."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -2084,7 +2206,7 @@ public sealed partial class HomePage : Page
 
         if (!options.MatchKeys && !options.MatchValueNames && !options.MatchValueData)
         {
-            ShowStatus("Search needs a scope", "Choose at least one place to search.", InfoBarSeverity.Warning);
+            ShowStatus("Search needs a scope", LocalizationService.Get("status.search-needs-a-scope.message", "Choose at least one place to search."), InfoBarSeverity.Warning);
             return;
         }
 
@@ -2102,16 +2224,16 @@ public sealed partial class HomePage : Page
         var startPath = _currentPath;
         var view = GetCurrentView();
         FindCommand.IsEnabled = false;
-        ShowStatus("Searching registry", $"Searching from {startPath}.", InfoBarSeverity.Informational);
-        UpdateStatus($"Searching for {options.Query}");
+        ShowStatus("Searching registry", LocalizationService.Format("status.searching-registry.message", "Searching from {0}.", startPath), InfoBarSeverity.Informational);
+        UpdateStatus(LocalizationService.Format("status.searching-query", "Searching for {0}", options.Query));
         try
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
             var result = await Task.Run(() => _browser.FindFirst(startPath, options, view, timeout.Token));
             if (result is null)
             {
-                ShowStatus("Finished searching", $"No match for '{options.Query}' under {startPath}.", InfoBarSeverity.Informational);
-                UpdateStatus($"No search match: {options.Query}");
+                ShowStatus("Finished searching", LocalizationService.Format("status.finished-searching.no-match-message", "No match for '{0}' under {1}.", options.Query, startPath), InfoBarSeverity.Informational);
+                UpdateStatus(LocalizationService.Format("status.no-search-match", "No search match: {0}", options.Query));
                 return;
             }
 
@@ -2121,13 +2243,13 @@ public sealed partial class HomePage : Page
                 DispatcherQueue.TryEnqueue(() => SelectValueByName(result.ValueName));
             }
 
-            ShowStatus("Search match found", $"{FormatSearchKind(result.MatchKind)}: {result.DisplayText}", InfoBarSeverity.Success);
-            UpdateStatus($"Found {FormatSearchKind(result.MatchKind).ToLowerInvariant()} {result.DisplayText}");
+            ShowStatus("Search match found", LocalizationService.Format("status.search-match-summary", "{0}: {1}", FormatSearchKind(result.MatchKind), result.DisplayText), InfoBarSeverity.Success);
+            UpdateStatus(LocalizationService.Format("status.search-found", "Found {0} {1}", FormatSearchKind(result.MatchKind).ToLowerInvariant(), result.DisplayText));
         }
         catch (OperationCanceledException)
         {
-            ShowStatus("Search stopped", "The search timed out before reaching the end of this branch.", InfoBarSeverity.Warning);
-            UpdateStatus($"Search timed out: {options.Query}");
+            ShowStatus("Search stopped", LocalizationService.Get("status.search-stopped.message", "The search timed out before reaching the end of this branch."), InfoBarSeverity.Warning);
+            UpdateStatus(LocalizationService.Format("status.search-timed-out", "Search timed out: {0}", options.Query));
         }
         finally
         {
@@ -2170,7 +2292,7 @@ public sealed partial class HomePage : Page
             SelectionLength = initialValue.Length
         };
 
-        var dialog = CreateDialog(title, input, "OK");
+        var dialog = CreateDialog(title, input, LocalizationService.Get("action.ok", "OK"));
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary ? input.Text : null;
     }
@@ -2180,19 +2302,19 @@ public sealed partial class HomePage : Page
         var max = bits == 32 ? uint.MaxValue : ulong.MaxValue;
         var input = new TextBox
         {
-            Header = "Value data",
+            Header = LocalizationService.Get("editor.value-data", "Value data"),
             Text = initialValue.ToString(System.Globalization.CultureInfo.InvariantCulture),
             MinWidth = 360
         };
         var baseSelector = new ComboBox
         {
-            Header = "Base",
+            Header = LocalizationService.Get("editor.base", "Base"),
             SelectedIndex = 0,
             MinWidth = 160,
             Items =
             {
-                new ComboBoxItem { Content = "Decimal" },
-                new ComboBoxItem { Content = "Hexadecimal" }
+                new ComboBoxItem { Content = LocalizationService.Get("editor.decimal", "Decimal") },
+                new ComboBoxItem { Content = LocalizationService.Get("editor.hexadecimal", "Hexadecimal") }
             }
         };
         var decimalPreview = new TextBlock { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold };
@@ -2209,8 +2331,8 @@ public sealed partial class HomePage : Page
             Spacing = 8,
             Children =
             {
-                CreatePreviewPill("Decimal", decimalPreview),
-                CreatePreviewPill("Hex", hexPreview)
+                CreatePreviewPill(LocalizationService.Get("editor.decimal", "Decimal"), decimalPreview),
+                CreatePreviewPill(LocalizationService.Get("editor.hex", "Hex"), hexPreview)
             }
         };
 
@@ -2228,8 +2350,8 @@ public sealed partial class HomePage : Page
                 preview.Visibility = Visibility.Collapsed;
                 invalidPreview.Visibility = Visibility.Visible;
                 invalidPreview.Text = bits == 32
-                    ? "Enter a DWORD from 0 to 4,294,967,295."
-                    : "Enter a QWORD from 0 to 18,446,744,073,709,551,615.";
+                    ? LocalizationService.Get("editor.invalid-dword", "Enter a DWORD from 0 to 4,294,967,295.")
+                    : LocalizationService.Get("editor.invalid-qword", "Enter a QWORD from 0 to 18,446,744,073,709,551,615.");
             }
         }
 
@@ -2254,7 +2376,7 @@ public sealed partial class HomePage : Page
         content.Children.Add(invalidPreview);
         UpdatePreview();
 
-        var dialog = CreateDialog(title, content, "OK");
+        var dialog = CreateDialog(title, content, LocalizationService.Get("action.ok", "OK"));
         var result = await dialog.ShowAsync();
         if (result != ContentDialogResult.Primary)
         {
@@ -2263,7 +2385,7 @@ public sealed partial class HomePage : Page
 
         if (!TryParseInteger(input.Text, baseSelector.SelectedIndex == 1, max, out var value))
         {
-            ShowStatus(bits == 32 ? "Invalid DWORD" : "Invalid QWORD", "Use a value in range for the selected base.", InfoBarSeverity.Error);
+            ShowStatus(bits == 32 ? "Invalid DWORD" : "Invalid QWORD", LocalizationService.Get("editor.range-invalid", "Use a value in range for the selected base."), InfoBarSeverity.Error);
             return null;
         }
 
@@ -2308,7 +2430,7 @@ public sealed partial class HomePage : Page
             MinHeight = 220
         };
 
-        var dialog = CreateDialog(title, input, "OK");
+        var dialog = CreateDialog(title, input, LocalizationService.Get("action.ok", "OK"));
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary ? input.Text : null;
     }
@@ -2317,7 +2439,7 @@ public sealed partial class HomePage : Page
     {
         var input = new TextBox
         {
-            Header = "Value data",
+            Header = LocalizationService.Get("editor.value-data", "Value data"),
             Text = initialValue,
             AcceptsReturn = false,
             SelectionStart = 0,
@@ -2350,7 +2472,7 @@ public sealed partial class HomePage : Page
             Child = preview
         });
 
-        var dialog = CreateDialog(title, content, "OK");
+        var dialog = CreateDialog(title, content, LocalizationService.Get("action.ok", "OK"));
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary ? input.Text : null;
     }
@@ -2359,7 +2481,7 @@ public sealed partial class HomePage : Page
     {
         var input = new TextBox
         {
-            Header = "Hex bytes",
+            Header = LocalizationService.Get("editor.hex-bytes", "Hex bytes"),
             Text = NormalizeHexText(initialValue),
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
@@ -2375,14 +2497,14 @@ public sealed partial class HomePage : Page
 
         var normalizeButton = new Button
         {
-            Content = "Normalize"
+            Content = LocalizationService.Get("editor.normalize", "Normalize")
         };
 
         void UpdateCount()
         {
             countText.Text = TryParseHexBytes(input.Text, out var bytes)
-                ? $"{bytes.Length} bytes"
-                : "Invalid hex. Use bytes like 04 00 FF.";
+                ? LocalizationService.Format("editor.byte-count", "{0} bytes", bytes.Length)
+                : LocalizationService.Get("editor.invalid-hex", "Invalid hex. Use bytes like 04 00 FF.");
         }
 
         input.TextChanged += (_, _) => UpdateCount();
@@ -2423,7 +2545,7 @@ public sealed partial class HomePage : Page
             CornerRadius = new CornerRadius(4),
             Child = new TextBlock
             {
-                Text = "Hex bytes can be separated by spaces, commas, or new lines. The value is stored as raw REG_BINARY data.",
+                Text = LocalizationService.Get("editor.hex-help", "Hex bytes can be separated by spaces, commas, or new lines. The value is stored as raw REG_BINARY data."),
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = Microsoft.UI.Xaml.Application.Current.Resources["TextFillColorSecondaryBrush"] as Microsoft.UI.Xaml.Media.Brush
             }
@@ -2433,7 +2555,7 @@ public sealed partial class HomePage : Page
 
         UpdateCount();
 
-        var dialog = CreateDialog(title, content, "OK");
+        var dialog = CreateDialog(title, content, LocalizationService.Get("action.ok", "OK"));
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary ? input.Text : null;
     }
@@ -2447,7 +2569,10 @@ public sealed partial class HomePage : Page
 
     private async Task<bool> ConfirmImportAsync(string fileName, RegImportDocument document)
     {
-        var dialog = CreateDialog("Import Registry File", CreateImportPreview(fileName, document), "Apply");
+        var dialog = CreateDialog(
+            LocalizationService.Get("import.dialog-title", "Import registry file"),
+            CreateImportPreview(fileName, document),
+            LocalizationService.Get("action.apply", "Apply"));
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary;
     }
@@ -2483,7 +2608,7 @@ public sealed partial class HomePage : Page
                 },
                 new TextBlock
                 {
-                    Text = "Review the operations before applying them to the registry.",
+                Text = LocalizationService.Get("import.preview-description", "Review the operations before applying them to the registry."),
                     Foreground = Microsoft.UI.Xaml.Application.Current.Resources["TextFillColorSecondaryBrush"] as Brush,
                     TextWrapping = TextWrapping.Wrap
                 }
@@ -2495,10 +2620,10 @@ public sealed partial class HomePage : Page
         statGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         statGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         statGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        AddImportStat(statGrid, 0, 0, "Keys opened", createKeys);
-        AddImportStat(statGrid, 0, 1, "Keys deleted", deleteKeys);
-        AddImportStat(statGrid, 1, 0, "Values set", setValues);
-        AddImportStat(statGrid, 1, 1, "Values deleted", deleteValues);
+        AddImportStat(statGrid, 0, 0, "import.keys-opened", "Keys opened", createKeys);
+        AddImportStat(statGrid, 0, 1, "import.keys-deleted", "Keys deleted", deleteKeys);
+        AddImportStat(statGrid, 1, 0, "import.values-set", "Values set", setValues);
+        AddImportStat(statGrid, 1, 1, "import.values-deleted", "Values deleted", deleteValues);
         content.Children.Add(statGrid);
 
         if (affectedKeys.Length > 0)
@@ -2506,7 +2631,7 @@ public sealed partial class HomePage : Page
             var keyList = new StackPanel { Spacing = 6 };
             keyList.Children.Add(new TextBlock
             {
-                Text = "Affected keys",
+                Text = LocalizationService.Get("import.affected-keys", "Affected keys"),
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
             });
 
@@ -2537,14 +2662,14 @@ public sealed partial class HomePage : Page
             IsOpen = true,
             IsClosable = false,
             Severity = deleteKeys > 0 || deleteValues > 0 ? InfoBarSeverity.Warning : InfoBarSeverity.Informational,
-            Title = deleteKeys > 0 || deleteValues > 0 ? "This import deletes registry data" : "Ready to apply",
-            Message = "The changes are applied directly. Export the target key first if you need a backup copy."
+            Title = LocalizationService.Get(deleteKeys > 0 || deleteValues > 0 ? "import.deletes-data" : "import.ready-to-apply", deleteKeys > 0 || deleteValues > 0 ? "This import deletes registry data" : "Ready to apply"),
+            Message = LocalizationService.Get("import.direct-warning", "The changes are applied directly. Export the target key first if you need a backup copy.")
         });
 
         return content;
     }
 
-    private static void AddImportStat(Grid grid, int row, int column, string label, int count)
+    private static void AddImportStat(Grid grid, int row, int column, string labelKey, string fallback, int count)
     {
         var block = new Border
         {
@@ -2566,7 +2691,7 @@ public sealed partial class HomePage : Page
                     },
                     new TextBlock
                     {
-                        Text = label,
+                        Text = LocalizationService.Get(labelKey, fallback),
                         Foreground = Microsoft.UI.Xaml.Application.Current.Resources["TextFillColorSecondaryBrush"] as Brush
                     }
                 }
@@ -2585,14 +2710,14 @@ public sealed partial class HomePage : Page
             Title = title,
             Content = content,
             PrimaryButtonText = primaryText,
-            CloseButtonText = "Cancel",
+            CloseButtonText = LocalizationService.Get("action.cancel", "Cancel"),
             DefaultButton = ContentDialogButton.Primary
         };
     }
 
     private void ShowStatus(string title, string message, InfoBarSeverity severity)
     {
-        StatusBar.Title = title;
+        StatusBar.Title = LocalizationService.StatusTitle(title);
         StatusBar.Message = message;
         StatusBar.Severity = severity;
         StatusBar.IsOpen = true;
@@ -2746,7 +2871,7 @@ public sealed partial class HomePage : Page
         }
         catch (Exception ex) when (IsRecoverableRegistryException(ex))
         {
-            UpdateStatus($"Write journal skipped: {ex.Message}");
+            UpdateStatus(LocalizationService.Format("status.write-journal-skipped", "Write journal skipped: {0}", ex.Message));
         }
     }
 

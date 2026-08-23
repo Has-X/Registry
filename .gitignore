@@ -6,5 +6,11 @@ obj/
 *.suo
 TestResults/
 artifacts/
+dist/
 *.log
 *.binlog
+native-publish*/
+cli-publish*/
+installer-test/
+installer-out/
+package/

@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Registry.Core;
 using Registry_App;
+using Registry_App.Services;
 
 namespace Registry_App.Pages;
 
@@ -15,6 +16,7 @@ public sealed partial class JournalPage : Page
         Loaded += JournalPage_Loaded;
         Unloaded += JournalPage_Unloaded;
         RegistryJournalStore.Changed += RegistryJournalStore_Changed;
+        LocalizationService.Apply(this);
     }
 
     private void JournalPage_Loaded(object sender, RoutedEventArgs e)
@@ -41,7 +43,9 @@ public sealed partial class JournalPage : Page
         JournalList.ItemsSource = rows;
         JournalList.Visibility = rows.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         EmptyState.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        JournalCountText.Text = rows.Length == 1 ? "1 snapshot" : $"{rows.Length} snapshots";
+        JournalCountText.Text = LocalizationService.Format(
+            rows.Length switch { 0 => "journal.count.none", 1 => "journal.count.one", _ => "journal.count.many" },
+            "{0}", rows.Length);
     }
 
     private async void Restore_Click(object sender, RoutedEventArgs e)
@@ -61,14 +65,14 @@ public sealed partial class JournalPage : Page
             var document = RegImportParser.Parse(entry.RegText);
             await Task.Run(() => _browser.ApplyImport(document, entry.ViewMode));
             RegistryJournalStore.Remove(entry);
-            JournalStatus.Title = "Restored";
+            JournalStatus.Title = LocalizationService.Get("journal.restored", "Restored");
             JournalStatus.Message = entry.Path.ToString();
             JournalStatus.Severity = InfoBarSeverity.Success;
             JournalStatus.IsOpen = true;
         }
         catch (Exception ex)
         {
-            JournalStatus.Title = "Restore failed";
+            JournalStatus.Title = LocalizationService.Get("journal.restore-failed", "Restore failed");
             JournalStatus.Message = ex.Message;
             JournalStatus.Severity = InfoBarSeverity.Error;
             JournalStatus.IsOpen = true;
@@ -88,8 +92,8 @@ public sealed partial class JournalPage : Page
         }
 
         RegistryJournalStore.Remove(entry);
-        JournalStatus.Title = "Removed";
-        JournalStatus.Message = "The snapshot was removed from Journal.";
+        JournalStatus.Title = LocalizationService.Get("journal.removed", "Removed");
+        JournalStatus.Message = LocalizationService.Get("journal.removed.message", "The snapshot was removed from Journal.");
         JournalStatus.Severity = InfoBarSeverity.Informational;
         JournalStatus.IsOpen = true;
     }
@@ -109,7 +113,7 @@ public sealed partial class JournalPage : Page
                 },
                 new TextBlock
                 {
-                    Text = "This will write the captured snapshot back to the registry. Current values in that snapshot scope may be replaced.",
+                    Text = LocalizationService.Get("journal.restore-confirmation", "This will write the captured snapshot back to the registry. Current values in that snapshot scope may be replaced."),
                     TextWrapping = TextWrapping.Wrap
                 }
             }
@@ -118,10 +122,10 @@ public sealed partial class JournalPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = "Restore journal snapshot?",
+            Title = LocalizationService.Get("journal.restore-title", "Restore journal snapshot?"),
             Content = content,
-            PrimaryButtonText = "Restore",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = LocalizationService.Get("action.restore", "Restore"),
+            CloseButtonText = LocalizationService.Get("action.cancel", "Cancel"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -143,7 +147,7 @@ public sealed partial class JournalPage : Page
                 },
                 new TextBlock
                 {
-                    Text = "This only removes the saved snapshot from Journal. It does not change the registry.",
+                    Text = LocalizationService.Get("journal.remove-confirmation", "This only removes the saved snapshot from Journal. It does not change the registry."),
                     TextWrapping = TextWrapping.Wrap
                 }
             }
@@ -152,10 +156,10 @@ public sealed partial class JournalPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = "Remove journal snapshot?",
+            Title = LocalizationService.Get("journal.remove-title", "Remove journal snapshot?"),
             Content = content,
-            PrimaryButtonText = "Remove",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = LocalizationService.Get("action.remove", "Remove"),
+            CloseButtonText = LocalizationService.Get("action.cancel", "Cancel"),
             DefaultButton = ContentDialogButton.Close
         };
 

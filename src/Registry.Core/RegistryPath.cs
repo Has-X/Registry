@@ -11,12 +11,37 @@ public sealed partial record RegistryPath(RegistryHiveId Hive, string SubKey)
             throw new ArgumentException("Registry path cannot be empty.", nameof(input));
         }
 
-        var normalized = SlashRegex().Replace(input.Trim(), @"\").Trim('\\');
+        var normalized = NormalizeSyntax(input);
         var separatorIndex = normalized.IndexOf('\\');
         var hiveToken = separatorIndex < 0 ? normalized : normalized[..separatorIndex];
         var subKey = separatorIndex < 0 ? string.Empty : normalized[(separatorIndex + 1)..];
 
         return new RegistryPath(ParseHive(hiveToken), subKey);
+    }
+
+    public static string NormalizeForSuggestion(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeSyntax(input);
+        var separatorIndex = normalized.IndexOf('\\');
+        var hiveToken = separatorIndex < 0 ? normalized : normalized[..separatorIndex];
+        var subKey = separatorIndex < 0 ? string.Empty : normalized[(separatorIndex + 1)..];
+
+        try
+        {
+            var hive = ParseHive(hiveToken);
+            return string.IsNullOrEmpty(subKey)
+                ? GetHiveDisplayName(hive)
+                : $@"{GetHiveDisplayName(hive)}\{subKey}";
+        }
+        catch (FormatException)
+        {
+            return normalized;
+        }
     }
 
     public override string ToString()
@@ -50,6 +75,31 @@ public sealed partial record RegistryPath(RegistryHiveId Hive, string SubKey)
             "HKPD" or "HKEY_PERFORMANCE_DATA" => RegistryHiveId.PerformanceData,
             _ => throw new FormatException($"Unknown registry hive '{token}'.")
         };
+    }
+
+    private static string NormalizeSyntax(string input)
+    {
+        var normalized = SlashRegex().Replace(input.Trim(), @"\").Trim('\\');
+        if (normalized.StartsWith("Registry::", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized["Registry::".Length..].TrimStart('\\');
+        }
+
+        if (normalized.StartsWith("Computer\\", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized["Computer\\".Length..];
+        }
+
+        var separatorIndex = normalized.IndexOf('\\');
+        if (separatorIndex < 0)
+        {
+            return normalized.TrimEnd(':');
+        }
+
+        var hiveToken = normalized[..separatorIndex].TrimEnd(':');
+        return string.IsNullOrEmpty(hiveToken)
+            ? normalized
+            : $@"{hiveToken}\{normalized[(separatorIndex + 1)..]}";
     }
 
     [GeneratedRegex(@"[\\/]+")]

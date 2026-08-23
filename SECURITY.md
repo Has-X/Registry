@@ -10,8 +10,8 @@ series is established.
 Please report security issues privately instead of opening a public issue.
 
 Use GitHub private vulnerability reporting when available for this repository.
-If that is not available, contact the maintainer through the GitHub profile for
-`Has-X` and include:
+If that is not available, email [feedback@chromatic.hu](mailto:feedback@chromatic.hu)
+with `Registry security report` in the subject and include:
 
 - affected version or commit,
 - exact registry path or feature involved,

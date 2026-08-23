@@ -23,7 +23,7 @@
                 <TextBlock
                     FontSize="24"
                     FontWeight="SemiBold"
-                    Text="Favorites" />
+                    Tag="nav.favorites" Text="Favorites" />
                 <TextBlock
                     x:Name="FavoriteCountText"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -32,10 +32,10 @@
                 Grid.Column="1"
                 Padding="10,5"
                 Click="Refresh_Click"
-                ToolTipService.ToolTip="Refresh favorites">
+                AutomationProperties.Name="action.refresh" ToolTipService.ToolTip="Refresh favorites">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon FontSize="14" Glyph="&#xE72C;" />
-                    <TextBlock Text="Refresh" />
+                    <TextBlock Tag="action.refresh" Text="Refresh" />
                 </StackPanel>
             </Button>
         </Grid>
@@ -92,10 +92,10 @@
                                     Foreground="{ThemeResource AccentButtonForeground}"
                                     Click="OpenFavorite_Click"
                                     Tag="{x:Bind PathText}"
-                                    ToolTipService.ToolTip="Open">
+                                    AutomationProperties.Name="action.open" ToolTipService.ToolTip="Open">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon FontSize="14" Glyph="&#xE8A7;" />
-                                        <TextBlock Text="Open" />
+                                        <TextBlock Tag="action.open" Text="Open" />
                                     </StackPanel>
                                 </Button>
                                 <Button
@@ -103,10 +103,10 @@
                                     Padding="10,5"
                                     Click="CopyFavorite_Click"
                                     Tag="{x:Bind PathText}"
-                                    ToolTipService.ToolTip="Copy path">
+                                    AutomationProperties.Name="action.copy-path" ToolTipService.ToolTip="Copy path">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon FontSize="14" Glyph="&#xE8C8;" />
-                                        <TextBlock Text="Copy" />
+                                        <TextBlock Tag="action.copy" Text="Copy" />
                                     </StackPanel>
                                 </Button>
                                 <Button
@@ -114,10 +114,10 @@
                                     Padding="10,5"
                                     Click="RemoveFavorite_Click"
                                     Tag="{x:Bind PathText}"
-                                    ToolTipService.ToolTip="Remove">
+                                    AutomationProperties.Name="action.remove" ToolTipService.ToolTip="Remove">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon FontSize="14" Glyph="&#xE74D;" />
-                                        <TextBlock Text="Remove" />
+                                        <TextBlock Tag="action.remove" Text="Remove" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -136,7 +136,7 @@
                         Glyph="&#xE734;" />
                     <TextBlock
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="No favorite keys yet." />
+                        Tag="favorites.empty" Text="No favorite keys yet." />
                 </StackPanel>
             </Grid>
         </Border>

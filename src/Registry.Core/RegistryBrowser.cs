@@ -508,7 +508,7 @@ public sealed class RegistryBrowser
         {
             nameof(RegistryValueKind.String) => $"{name}={Quote(value.DisplayData)}",
             nameof(RegistryValueKind.ExpandString) => $"{name}=hex(2):{ToHexWithUtf16Terminator(value.DisplayData)}",
-            nameof(RegistryValueKind.DWord) => $"{name}=dword:{Convert.ToUInt32(value.Data):x8}",
+            nameof(RegistryValueKind.DWord) => $"{name}=dword:{ToDwordBits(value.Data):x8}",
             nameof(RegistryValueKind.QWord) => $"{name}=hex(b):{ToLittleEndianHex(Convert.ToUInt64(value.Data))}",
             nameof(RegistryValueKind.Binary) when value.Data is byte[] bytes => $"{name}=hex:{string.Join(',', bytes.Select(b => b.ToString("x2")))}",
             nameof(RegistryValueKind.MultiString) when value.Data is string[] values => $"{name}=hex(7):{ToHexWithUtf16Terminator(string.Join('\0', values) + '\0')}",
@@ -519,6 +519,17 @@ public sealed class RegistryBrowser
     private static string Quote(string value)
     {
         return $"\"{value.Replace(@"\", @"\\").Replace("\"", "\\\"")}\"";
+    }
+
+    private static uint ToDwordBits(object? value)
+    {
+        return value switch
+        {
+            null => throw new InvalidOperationException("DWORD registry value has no data."),
+            int signedValue => unchecked((uint)signedValue),
+            uint unsignedValue => unsignedValue,
+            _ => Convert.ToUInt32(value, System.Globalization.CultureInfo.InvariantCulture)
+        };
     }
 
     private static string ToLittleEndianHex(ulong value)

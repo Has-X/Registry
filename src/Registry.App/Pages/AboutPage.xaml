@@ -7,35 +7,65 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24,18,24,18">
-        <StackPanel MaxWidth="640" HorizontalAlignment="Left" Spacing="18">
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Image
-                    Width="72"
-                    Height="72"
-                    Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" />
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                    <TextBlock FontSize="28" FontWeight="SemiBold" Text="Registry" />
-                    <TextBlock
-                        x:Name="VersionText"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-            </Grid>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="32,28,32,48">
+            <StackPanel MaxWidth="760" HorizontalAlignment="Left" Spacing="20">
+                <Border Padding="28" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="16">
+                    <Grid ColumnSpacing="22">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="88" Height="88" Padding="8" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="20">
+                            <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
+                            <TextBlock FontSize="32" FontWeight="SemiBold" Tag="app.title" Text="Registry" />
+                            <TextBlock x:Name="VersionText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Margin="0,7,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Tag="about.tagline" Text="A modern editor for Windows registry data." TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
-            <TextBlock
-                FontSize="15"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="A modern registry editor for browsing, editing, importing, exporting, and checking registry data with a familiar Windows feel."
-                TextWrapping="Wrap" />
+                <Border Padding="24" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Tag="about.careful-work" Text="Built for careful system work" />
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Tag="about.careful-work.description" Text="Browse, inspect, edit, import, and export registry data with explicit architecture views, confirmation before destructive changes, and recoverable app-created backups." TextWrapping="Wrap" />
+                        <Grid Margin="0,8,0,0" ColumnSpacing="12" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Padding="14" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="10">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontWeight="SemiBold" Tag="about.native-windows" Text="Native Windows application" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Tag="about.native-windows.description" Text="Built with WinUI 3 and the Windows App SDK." TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Padding="14" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="10">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontWeight="SemiBold" Tag="about.architectures" Text="Windows on x64 and ARM64" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Tag="about.architectures.description" Text="Native release builds for modern Windows PCs." TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-            <TextBlock
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                Text="WinUI 3 • Windows App SDK • .NET"
-                TextWrapping="Wrap" />
-        </StackPanel>
-    </Grid>
+                <Border Padding="24" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="16">
+                    <StackPanel Spacing="10">
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Tag="about.publisher" Text="Published by Chromatic" />
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Tag="about.publisher.description" Text="Registry is maintained by Chromatic. Visit our website or send product feedback directly to the team." TextWrapping="Wrap" />
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Spacing="10">
+                            <Button Tag="action.visit-website" Click="WebsiteButton_Click" Content="Visit chromatic.hu" />
+                            <Button
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="FeedbackButton_Click"
+                                Tag="action.send-feedback" Content="Send feedback" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
 </Page>

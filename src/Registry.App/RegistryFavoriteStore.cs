@@ -1,6 +1,4 @@
 using Registry.Core;
-using Windows.Storage;
-
 namespace Registry_App;
 
 public static class RegistryFavoriteStore
@@ -11,7 +9,8 @@ public static class RegistryFavoriteStore
 
     public static IReadOnlyList<RegistryPath> GetFavorites()
     {
-        if (ApplicationData.Current.LocalSettings.Values[FavoritesSettingKey] is not string payload)
+        var payload = RegistryAppData.GetSetting(FavoritesSettingKey);
+        if (string.IsNullOrWhiteSpace(payload))
         {
             return [];
         }
@@ -61,6 +60,6 @@ public static class RegistryFavoriteStore
 
     private static void Save(IReadOnlyList<RegistryPath> favorites)
     {
-        ApplicationData.Current.LocalSettings.Values[FavoritesSettingKey] = string.Join('\n', favorites.Select(path => path.ToString()));
+        RegistryAppData.SetSetting(FavoritesSettingKey, string.Join('\n', favorites.Select(path => path.ToString())));
     }
 }

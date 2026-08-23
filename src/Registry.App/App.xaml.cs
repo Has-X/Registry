@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.AppLifecycle;
-using Windows.ApplicationModel.Activation;
+using Registry_App.Services;
 using Windows.Storage;
+using System.Text;
 
 namespace Registry_App;
 
@@ -13,43 +13,79 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        UnhandledException += (_, args) => WriteStartupFailure(args.Message, args.Exception);
+        LocalizationService.Initialize();
     }
 
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        _window = new MainWindow();
-        MainWindow = _window;
-        _window.Activate();
-        HandleActivation(AppInstance.GetCurrent().GetActivatedEventArgs());
-        HandleLaunchArguments(args.Arguments);
+        var registryFilePath = GetRegistryFilePath(args.Arguments);
+        if (registryFilePath is not null && RegistryFileActivationRouter.TryForwardToExistingInstance(registryFilePath))
+        {
+            Environment.Exit(0);
+        }
+
+        try
+        {
+            RegOpenWithRegistration.Register();
+        }
+        catch
+        {
+            // File integration is optional and must not prevent Registry from opening.
+        }
+
+        try
+        {
+            _window = new MainWindow();
+            MainWindow = _window;
+            _window.Activate();
+            RegistryFileActivationRouter.Start(HandleForwardedRegistryFile);
+            if (registryFilePath is not null)
+            {
+                ((MainWindow)_window).OpenRegistryFilePath(registryFilePath);
+            }
+        }
+        catch (Exception exception)
+        {
+            WriteStartupFailure("Main window initialization failed.", exception);
+            throw;
+        }
     }
 
-    private void HandleActivation(AppActivationArguments args)
+    private static void WriteStartupFailure(string message, Exception? exception)
     {
-        if (_window is not MainWindow mainWindow)
+        try
         {
-            return;
+            var directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Chromatic",
+                "Registry");
+            Directory.CreateDirectory(directory);
+            File.AppendAllText(
+                Path.Combine(directory, "startup-failures.log"),
+                $"{DateTimeOffset.Now:O}{Environment.NewLine}{message}{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}",
+                Encoding.UTF8);
         }
-
-        if (args.Kind == ExtendedActivationKind.File
-            && args.Data is IFileActivatedEventArgs fileArgs
-            && fileArgs.Files.FirstOrDefault() is StorageFile file)
+        catch
         {
-            mainWindow.OpenRegistryFile(file);
+            // Diagnostics must never interfere with the original failure.
         }
     }
 
-    private void HandleLaunchArguments(string arguments)
+    private static string? GetRegistryFilePath(string arguments)
     {
-        if (_window is not MainWindow mainWindow || string.IsNullOrWhiteSpace(arguments))
-        {
-            return;
-        }
+        var candidates = new[] { arguments }
+            .Concat(Environment.GetCommandLineArgs().Skip(1));
+        return candidates
+            .Select(candidate => candidate.Trim().Trim('"'))
+            .FirstOrDefault(candidate => candidate.EndsWith(".reg", StringComparison.OrdinalIgnoreCase) && File.Exists(candidate));
+    }
 
-        var path = arguments.Trim().Trim('"');
-        if (path.EndsWith(".reg", StringComparison.OrdinalIgnoreCase) && File.Exists(path))
+    private void HandleForwardedRegistryFile(string path)
+    {
+        if (_window is MainWindow mainWindow)
         {
-            mainWindow.OpenRegistryFilePath(path);
+            mainWindow.DispatcherQueue.TryEnqueue(() => mainWindow.OpenRegistryFilePath(path));
         }
     }
 }

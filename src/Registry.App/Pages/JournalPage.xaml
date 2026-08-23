@@ -24,10 +24,10 @@
                 <TextBlock
                     FontSize="24"
                     FontWeight="SemiBold"
-                    Text="Journal" />
+                    Tag="nav.journal" Text="Journal" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Restore previous states captured before changes made in Registry."
+                    Tag="journal.description" Text="Restore previous states captured before changes made in Registry."
                     TextWrapping="Wrap" />
             </StackPanel>
             <Border
@@ -106,10 +106,10 @@
                                     Click="Restore_Click"
                                     Foreground="{ThemeResource AccentButtonForeground}"
                                     Tag="{x:Bind Entry}"
-                                    ToolTipService.ToolTip="Restore this snapshot">
+                                    AutomationProperties.Name="action.restore" ToolTipService.ToolTip="Restore this snapshot">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon FontSize="14" Glyph="&#xE777;" />
-                                        <TextBlock Text="Restore" />
+                                        <TextBlock Tag="action.restore" Text="Restore" />
                                     </StackPanel>
                                 </Button>
                                 <Button
@@ -117,10 +117,10 @@
                                     Padding="10,5"
                                     Click="Remove_Click"
                                     Tag="{x:Bind Entry}"
-                                    ToolTipService.ToolTip="Remove from journal">
+                                    AutomationProperties.Name="action.remove" ToolTipService.ToolTip="Remove from journal">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon FontSize="14" Glyph="&#xE74D;" />
-                                        <TextBlock Text="Remove" />
+                                        <TextBlock Tag="action.remove" Text="Remove" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -139,7 +139,7 @@
                         Glyph="&#xE81C;" />
                     <TextBlock
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="No journal snapshots yet." />
+                        Tag="journal.empty" Text="No journal snapshots yet." />
                 </StackPanel>
             </Grid>
         </Border>

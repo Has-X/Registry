@@ -90,6 +90,16 @@ public sealed class RegistryBrowserWriteTests : IDisposable
     }
 
     [Fact]
+    public void ExportRegPreservesHighBitDwordValues()
+    {
+        _browser.SetValue(_testRoot, "HighBit", RegistryValueKind.DWord, unchecked((int)0xFFFFFFFF));
+
+        var export = _browser.ExportReg(_testRoot);
+
+        Assert.Contains("\"HighBit\"=dword:ffffffff", export);
+    }
+
+    [Fact]
     public void RenameValuePreservesKindAndData()
     {
         _browser.SetValue(_testRoot, "OldName", RegistryValueKind.DWord, 42);

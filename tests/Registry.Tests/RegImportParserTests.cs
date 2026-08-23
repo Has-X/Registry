@@ -62,4 +62,41 @@ public sealed class RegImportParserTests
             }
         }
     }
+
+    [Fact]
+    public void ApplyImportWritesEveryValueKindUsedByTheIntegrationFixture()
+    {
+        var browser = new RegistryBrowser();
+        var root = RegistryPath.Parse($@"HKCU\Software\Registry.Import.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var document = RegImportParser.Parse($$"""
+                Windows Registry Editor Version 5.00
+
+                [{{root}}]
+                "StringValue"="Imported from Registry-Test-Integration.reg"
+                "DwordValue"=dword:0000002a
+                "QwordValue"=hex(b):2a,00,00,00,00,00,00,00
+                "BinaryValue"=hex:01,23,45,67,89,ab,cd,ef
+                "MultiStringValue"=hex(7):66,00,69,00,72,00,73,00,74,00,00,00,73,00,65,00,63,00,6f,00,6e,00,64,00,00,00,00,00
+                """);
+
+            browser.ApplyImport(document);
+
+            var snapshot = browser.ReadKey(root);
+            Assert.Contains(snapshot.Values, value => value.Name == "QwordValue" && value.DisplayData == "42");
+            Assert.Contains(snapshot.Values, value => value.Name == "MultiStringValue" && value.DisplayData == "first; second");
+        }
+        finally
+        {
+            try
+            {
+                browser.DeleteSubKeyTree(root);
+            }
+            catch
+            {
+                // Cleanup must not hide the original test result.
+            }
+        }
+    }
 }

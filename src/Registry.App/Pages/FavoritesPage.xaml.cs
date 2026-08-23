@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Registry.Core;
+using Registry_App.Services;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace Registry_App.Pages;
@@ -19,6 +20,7 @@ public sealed partial class FavoritesPage : Page
     private void FavoritesPage_Loaded(object sender, RoutedEventArgs e)
     {
         RegistryFavoriteStore.FavoritesChanged += RegistryFavoriteStore_FavoritesChanged;
+        LocalizationService.Apply(this);
         LoadFavorites();
     }
 
@@ -81,12 +83,10 @@ public sealed partial class FavoritesPage : Page
 
         FavoritesList.ItemsSource = rows;
         EmptyState.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        FavoriteCountText.Text = rows.Length switch
-        {
-            0 => "No saved keys",
-            1 => "1 saved key",
-            _ => $"{rows.Length:N0} saved keys"
-        };
+        FavoriteCountText.Text = LocalizationService.Format(
+            rows.Length switch { 0 => "favorites.count.none", 1 => "favorites.count.one", _ => "favorites.count.many" },
+            "{0}", rows.Length);
+        DispatcherQueue.TryEnqueue(() => LocalizationService.Apply(this));
     }
 
     private static bool TryGetPath(object sender, out RegistryPath path)

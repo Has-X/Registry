@@ -1,5 +1,3 @@
-using Windows.Storage;
-
 namespace Registry_App;
 
 public static class AppSettings
@@ -7,19 +5,21 @@ public static class AppSettings
     private const string ToolbarAlignmentKey = "ToolbarAlignment";
     private const string ToolbarDetailKey = "ToolbarDetail";
     private const string BackdropStyleKey = "BackdropStyle";
+    private const string RegImportModeKey = "RegImportMode";
     private const string DefaultToolbarAlignment = "Left";
     private const string DefaultToolbarDetail = "Essential";
     private const string DefaultBackdropStyle = "Mica";
+    private const string DefaultRegImportMode = "Modal";
 
     public static event EventHandler? Changed;
 
     public static string ToolbarAlignment
     {
-        get => ApplicationData.Current.LocalSettings.Values[ToolbarAlignmentKey] as string ?? DefaultToolbarAlignment;
+        get => RegistryAppData.GetSetting(ToolbarAlignmentKey) ?? DefaultToolbarAlignment;
         set
         {
             var normalized = NormalizeToolbarAlignment(value);
-            ApplicationData.Current.LocalSettings.Values[ToolbarAlignmentKey] = normalized;
+            RegistryAppData.SetSetting(ToolbarAlignmentKey, normalized);
             Changed?.Invoke(null, EventArgs.Empty);
         }
     }
@@ -42,11 +42,11 @@ public static class AppSettings
 
     public static string ToolbarDetail
     {
-        get => ApplicationData.Current.LocalSettings.Values[ToolbarDetailKey] as string ?? DefaultToolbarDetail;
+        get => RegistryAppData.GetSetting(ToolbarDetailKey) ?? DefaultToolbarDetail;
         set
         {
             var normalized = NormalizeToolbarDetail(value);
-            ApplicationData.Current.LocalSettings.Values[ToolbarDetailKey] = normalized;
+            RegistryAppData.SetSetting(ToolbarDetailKey, normalized);
             Changed?.Invoke(null, EventArgs.Empty);
         }
     }
@@ -63,11 +63,11 @@ public static class AppSettings
 
     public static string BackdropStyle
     {
-        get => ApplicationData.Current.LocalSettings.Values[BackdropStyleKey] as string ?? DefaultBackdropStyle;
+        get => RegistryAppData.GetSetting(BackdropStyleKey) ?? DefaultBackdropStyle;
         set
         {
             var normalized = NormalizeBackdropStyle(value);
-            ApplicationData.Current.LocalSettings.Values[BackdropStyleKey] = normalized;
+            RegistryAppData.SetSetting(BackdropStyleKey, normalized);
             Changed?.Invoke(null, EventArgs.Empty);
         }
     }
@@ -86,6 +86,23 @@ public static class AppSettings
             2 => "Off",
             _ => "Mica"
         };
+    }
+
+    public static string RegImportMode
+    {
+        get => RegistryAppData.GetSetting(RegImportModeKey) ?? DefaultRegImportMode;
+        set
+        {
+            var normalized = value == "NewWindow" ? "NewWindow" : "Modal";
+            RegistryAppData.SetSetting(RegImportModeKey, normalized);
+            Changed?.Invoke(null, EventArgs.Empty);
+        }
+    }
+
+    public static int RegImportModeIndex
+    {
+        get => RegImportMode == "NewWindow" ? 1 : 0;
+        set => RegImportMode = value == 1 ? "NewWindow" : "Modal";
     }
 
     private static string NormalizeToolbarAlignment(string value)

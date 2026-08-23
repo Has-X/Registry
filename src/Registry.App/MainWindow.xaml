@@ -23,7 +23,7 @@
             IsPaneToggleButtonVisible="True"
             PaneToggleRequested="TitleBar_PaneToggleRequested">
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="Assets/AppIcon.ico" />
+                <ImageIconSource ImageSource="Assets/RegistryLogo.png" />
             </TitleBar.IconSource>
         </TitleBar>
 
@@ -39,29 +39,31 @@
             <NavigationView.Resources>
                 <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#22FFFFFF" />
                 <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#2AFFFFFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#14FFFFFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#20FFFFFF" />
             </NavigationView.Resources>
             <NavigationView.MenuItems>
                 <NavigationViewItem
-                    Content="Registry"
+                    AutomationProperties.Name="app.title" Content="Registry"
                     IsSelected="True"
                     Tag="home">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8A5;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Favorites" Tag="favorites">
+                <NavigationViewItem Content="Favorites" Tag="favorites" AutomationProperties.Name="nav.favorites">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE734;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Journal" Tag="journal">
+                <NavigationViewItem Content="Journal" Tag="journal" AutomationProperties.Name="nav.journal">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE81C;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
-                <NavigationViewItem Content="About" Tag="about">
+                <NavigationViewItem Content="About" Tag="about" AutomationProperties.Name="nav.about">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE946;" />
                     </NavigationViewItem.Icon>

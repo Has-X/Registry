@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Registry_App.Pages;
+using Registry_App.Services;
 using Windows.Storage;
 using Windows.UI;
 
@@ -11,12 +12,17 @@ namespace Registry_App;
 
 public sealed partial class MainWindow : Window
 {
+    private static readonly List<MainWindow> ImportWindows = [];
     private HomePage? _homePage;
     private string? _appliedBackdropStyle;
 
     public MainWindow()
     {
         InitializeComponent();
+        LocalizationService.Apply(NavView);
+        var appTitle = LocalizationService.Get("app.title", "Registry");
+        AppTitleBar.Title = appTitle;
+        AppWindow.Title = appTitle;
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
@@ -142,9 +148,19 @@ public sealed partial class MainWindow : Window
 
     public void OpenRegistryFile(StorageFile file)
     {
+        if (AppSettings.RegImportMode == "NewWindow")
+        {
+            var window = new MainWindow();
+            ImportWindows.Add(window);
+            window.Closed += (_, _) => ImportWindows.Remove(window);
+            window.Activate();
+            window.DispatcherQueue.TryEnqueue(() => window._homePage?.ImportRegistryFile(file));
+            return;
+        }
+
         SelectNavigationItem("home");
         NavigateHome();
-        _homePage?.ImportRegistryFile(file);
+        DispatcherQueue.TryEnqueue(() => _homePage?.ImportRegistryFile(file));
     }
 
     public async void OpenRegistryFilePath(string path)

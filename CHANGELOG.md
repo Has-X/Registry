@@ -14,6 +14,8 @@ Initial public preview.
 - Read-only permissions view and load/unload hive commands.
 - CLI for roots, list, find, get, set, rename, delete, import, export, and hive operations.
 - GitHub Actions CI, release artifact build, Pages deployment, Dependabot, and CodeQL.
+- Native x64 and ARM64 release installers with Windows 11 light/dark installer artwork.
+- Chromatic publisher metadata, release checksums, GitHub Wiki source pages, dependency review, and CodeQL Advanced queries.
 
 ### Known Gaps
 

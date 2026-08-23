@@ -43,7 +43,7 @@
                 Width="30"
                 Height="30"
                 Padding="0"
-                ToolTipService.ToolTip="Back"
+                AutomationProperties.Name="action.back" ToolTipService.ToolTip="Back"
                 Click="Back_Click">
                 <FontIcon FontSize="13" Glyph="&#xE72B;" />
             </Button>
@@ -53,7 +53,7 @@
                 Width="30"
                 Height="30"
                 Padding="0"
-                ToolTipService.ToolTip="Forward"
+                AutomationProperties.Name="action.forward" ToolTipService.ToolTip="Forward"
                 Click="Forward_Click">
                 <FontIcon FontSize="13" Glyph="&#xE72A;" />
             </Button>
@@ -63,7 +63,7 @@
                 Width="30"
                 Height="30"
                 Padding="0"
-                ToolTipService.ToolTip="Open parent key"
+                AutomationProperties.Name="action.open-parent" ToolTipService.ToolTip="Open parent key"
                 Click="UpButton_Click">
                 <FontIcon FontSize="13" Glyph="&#xE74A;" />
             </Button>
@@ -71,8 +71,9 @@
                 x:Name="AddressBox"
                 Grid.Column="3"
                 MinWidth="180"
-                PlaceholderText="HKEY_CURRENT_USER\Software"
+                Tag="address.placeholder" AutomationProperties.Name="address.placeholder" PlaceholderText="HKCU or HKEY_CURRENT_USER\Software"
                 QueryIcon="Find"
+                AutomationProperties.HelpText="address.tooltip" ToolTipService.ToolTip="Paste a Registry Editor or PowerShell path, then press Enter to open it."
                 TextChanged="AddressBox_TextChanged"
                 SuggestionChosen="AddressBox_SuggestionChosen"
                 PreviewKeyDown="AddressBox_PreviewKeyDown"
@@ -90,7 +91,7 @@
                     x:Name="ValueFilterBox"
                     MinWidth="180"
                     Height="32"
-                    PlaceholderText="Filter values"
+                    Tag="filter.values-placeholder" PlaceholderText="Filter values"
                     TextChanged="ValueFilterBox_TextChanged" />
                 <ComboBox
                     x:Name="ValueTypeFilter"
@@ -98,7 +99,7 @@
                     MinWidth="160"
                     SelectionChanged="ValueTypeFilter_SelectionChanged"
                     SelectedIndex="0">
-                    <ComboBoxItem Content="All types" />
+                    <ComboBoxItem Tag="filter.all-types" Content="All types" />
                     <ComboBoxItem Content="String" />
                     <ComboBoxItem Content="ExpandString" />
                     <ComboBoxItem Content="DWord" />
@@ -123,51 +124,51 @@
                 <SolidColorBrush x:Key="CommandBarOverflowButtonBackgroundOpen" Color="Transparent" />
                 <SolidColorBrush x:Key="CommandBarOverflowButtonBackgroundPointerOver" Color="#18FFFFFF" />
             </CommandBar.Resources>
-            <AppBarButton x:Name="RefreshCommand" Icon="Refresh" Label="Refresh" Click="Refresh_Click" />
-            <AppBarButton x:Name="FindCommand" Icon="Find" Label="Find" Click="Find_Click" />
-            <AppBarButton x:Name="EditCommand" Margin="12,0,0,0" Icon="Edit" Label="Edit" Click="EditValue_Click" />
-            <AppBarButton x:Name="DeleteValueCommand" Icon="Delete" Label="Delete" Click="DeleteValue_Click" />
-            <AppBarToggleButton x:Name="FavoriteCommand" Margin="12,0,0,0" Icon="Favorite" Label="Favorite" Click="AddFavorite_Click" />
-            <AppBarButton x:Name="CopyPathCommand" Icon="Copy" Label="Copy path" Click="CopyPath_Click" />
-            <AppBarButton x:Name="CopyValueCommand" Icon="Copy" Label="Copy value" Click="CopyValue_Click" Visibility="Collapsed" />
-            <AppBarButton x:Name="PermissionsCommand" Icon="Permissions" Label="Permissions" Click="Permissions_Click" Visibility="Collapsed" />
-            <AppBarToggleButton x:Name="MonitorCommand" Icon="View" Label="Monitor" Click="Monitor_Click" Visibility="Collapsed" />
-            <AppBarButton x:Name="ExportCommand" Icon="Save" Label="Export" Click="Export_Click" Visibility="Collapsed" />
-            <AppBarButton x:Name="ImportCommand" Icon="OpenFile" Label="Import" Click="Import_Click" Visibility="Collapsed" />
-            <AppBarButton x:Name="OverflowCommand" Icon="More" Label="More">
+            <AppBarButton x:Name="RefreshCommand" AutomationProperties.Name="action.refresh" Icon="Refresh" Label="Refresh" Click="Refresh_Click" />
+            <AppBarButton x:Name="FindCommand" AutomationProperties.Name="action.find" Icon="Find" Label="Find" Click="Find_Click" />
+            <AppBarButton x:Name="EditCommand" AutomationProperties.Name="action.edit" Margin="12,0,0,0" Icon="Edit" Label="Edit" Click="EditValue_Click" />
+            <AppBarButton x:Name="DeleteValueCommand" AutomationProperties.Name="action.delete" Icon="Delete" Label="Delete" Click="DeleteValue_Click" />
+            <AppBarToggleButton x:Name="FavoriteCommand" AutomationProperties.Name="action.favorite" Margin="12,0,0,0" Icon="Favorite" Label="Favorite" Click="AddFavorite_Click" />
+            <AppBarButton x:Name="CopyPathCommand" AutomationProperties.Name="action.copy-path" Icon="Copy" Label="Copy path" Click="CopyPath_Click" />
+            <AppBarButton x:Name="CopyValueCommand" AutomationProperties.Name="action.copy-value" Icon="Copy" Label="Copy value" Click="CopyValue_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="PermissionsCommand" AutomationProperties.Name="action.permissions" Icon="Permissions" Label="Permissions" Click="Permissions_Click" Visibility="Collapsed" />
+            <AppBarToggleButton x:Name="MonitorCommand" AutomationProperties.Name="action.monitor" Icon="View" Label="Monitor" Click="Monitor_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="ExportCommand" AutomationProperties.Name="action.export" Icon="Save" Label="Export" Click="Export_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="ImportCommand" AutomationProperties.Name="action.import" Icon="OpenFile" Label="Import" Click="Import_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="OverflowCommand" AutomationProperties.Name="action.more" Icon="More" Label="More">
                 <AppBarButton.Flyout>
                     <MenuFlyout>
-                        <MenuFlyoutItem x:Name="CopyValueMenuItem" Text="Copy value" Click="CopyValue_Click">
+                        <MenuFlyoutItem x:Name="CopyValueMenuItem" AutomationProperties.Name="action.copy-value" Text="Copy value" Click="CopyValue_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="Copy" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="PermissionsMenuItem" Text="Permissions" Click="Permissions_Click">
+                        <MenuFlyoutItem x:Name="PermissionsMenuItem" AutomationProperties.Name="action.permissions" Text="Permissions" Click="Permissions_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="Permissions" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="MonitorMenuItem" Text="Monitor" Click="Monitor_Click">
+                        <MenuFlyoutItem x:Name="MonitorMenuItem" AutomationProperties.Name="action.monitor" Text="Monitor" Click="Monitor_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="View" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="ExportMenuItem" Text="Export" Click="Export_Click">
+                        <MenuFlyoutItem x:Name="ExportMenuItem" AutomationProperties.Name="action.export" Text="Export" Click="Export_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="Save" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="ImportMenuItem" Text="Import" Click="Import_Click">
+                        <MenuFlyoutItem x:Name="ImportMenuItem" AutomationProperties.Name="action.import" Text="Import" Click="Import_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="OpenFile" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="LoadHiveMenuItem" Text="Load hive" Click="LoadHive_Click">
+                        <MenuFlyoutItem x:Name="LoadHiveMenuItem" AutomationProperties.Name="action.load-hive" Text="Load hive" Click="LoadHive_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="OpenFile" />
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="UnloadHiveMenuItem" Text="Unload hive" Click="UnloadHive_Click">
+                        <MenuFlyoutItem x:Name="UnloadHiveMenuItem" AutomationProperties.Name="action.unload-hive" Text="Unload hive" Click="UnloadHive_Click">
                             <MenuFlyoutItem.Icon>
                                 <SymbolIcon Symbol="ClosePane" />
                             </MenuFlyoutItem.Icon>
@@ -175,8 +176,8 @@
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
-            <AppBarButton x:Name="LoadHiveCommand" Icon="OpenFile" Label="Load hive" Click="LoadHive_Click" Visibility="Collapsed" />
-            <AppBarButton x:Name="UnloadHiveCommand" Icon="ClosePane" Label="Unload hive" Click="UnloadHive_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="LoadHiveCommand" AutomationProperties.Name="action.load-hive" Icon="OpenFile" Label="Load hive" Click="LoadHive_Click" Visibility="Collapsed" />
+            <AppBarButton x:Name="UnloadHiveCommand" AutomationProperties.Name="action.unload-hive" Icon="ClosePane" Label="Unload hive" Click="UnloadHive_Click" Visibility="Collapsed" />
         </CommandBar>
 
         <Grid Grid.Row="2" ColumnSpacing="12">
@@ -195,7 +196,7 @@
                     <TextBlock
                         Margin="12,8,12,6"
                         FontWeight="SemiBold"
-                        Text="Keys" />
+                        Tag="label.keys" Text="Keys" />
                     <TreeView
                         x:Name="KeyTree"
                         Grid.Row="1"
@@ -241,7 +242,7 @@
                             FontWeight="SemiBold"
                             ContextRequested="CurrentPathText_ContextRequested"
                             TextTrimming="CharacterEllipsis"
-                            ToolTipService.ToolTip="Right click for key actions" />
+                            AutomationProperties.HelpText="keys.context-tooltip" ToolTipService.ToolTip="Right click for key actions" />
                         <StackPanel
                             x:Name="CountPills"
                             Grid.Column="1"
@@ -283,7 +284,7 @@
                             <ColumnDefinition Width="6" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="Name" />
+                        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Tag="label.name" Text="Name" />
                         <Thumb Grid.Column="1" DragDelta="ValueNameSplitter_DragDelta">
                             <Thumb.Template>
                                 <ControlTemplate TargetType="Thumb">
@@ -300,7 +301,7 @@
                                 </ControlTemplate>
                             </Thumb.Template>
                         </Thumb>
-                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontWeight="SemiBold" Text="Type" />
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontWeight="SemiBold" Tag="label.type" Text="Type" />
                         <Thumb Grid.Column="3" DragDelta="ValueTypeSplitter_DragDelta">
                             <Thumb.Template>
                                 <ControlTemplate TargetType="Thumb">
@@ -317,7 +318,7 @@
                                 </ControlTemplate>
                             </Thumb.Template>
                         </Thumb>
-                        <TextBlock Grid.Column="4" VerticalAlignment="Center" FontWeight="SemiBold" Text="Data" />
+                        <TextBlock Grid.Column="4" VerticalAlignment="Center" FontWeight="SemiBold" Tag="label.data" Text="Data" />
                     </Grid>
                     <ListView
                         x:Name="ValueList"
@@ -365,7 +366,7 @@
                         <TextBlock
                             x:Name="EmptyValuesText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="This key has no values." />
+                            Tag="home.empty-values" Text="This key has no values." />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -391,7 +392,7 @@
                 <TextBlock
                     x:Name="StatusText"
                     VerticalAlignment="Center"
-                    Text="Ready"
+                    Tag="status.ready" Text="Ready"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap" />
                 <ComboBox
@@ -400,8 +401,8 @@
                     MinWidth="128"
                     SelectionChanged="RegistryViewSelector_SelectionChanged"
                     SelectedIndex="1">
-                    <ComboBoxItem Content="32-bit view" />
-                    <ComboBoxItem Content="64-bit view" />
+                    <ComboBoxItem Tag="choice.view-32" Content="32-bit view" />
+                    <ComboBoxItem Tag="choice.view-64" Content="64-bit view" />
                 </ComboBox>
             </Grid>
         </Border>
