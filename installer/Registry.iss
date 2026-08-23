@@ -18,7 +18,7 @@
 #endif
 
 [Setup]
-AppId={{1D6E095B-75F1-4CFB-9B12-2E42CD60DFE1}
+AppId={{1D6E095B-75F1-4CFB-9B12-2E42CD60DFE1}}
 AppName=Registry
 AppVersion={#AppVersion}
 AppVerName=Registry {#AppVersion}
@@ -106,26 +106,28 @@ Type: files; Name: "{app}\*.winmd"
 Name: "{autoprograms}\Registry"; Filename: "{app}\Registry.App.exe"; WorkingDir: "{app}"
 
 [Registry]
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Registry"; Flags: uninsdeletekeyifempty
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\SupportedTypes"; ValueType: string; ValueName: ".reg"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Registry"; Flags: uninsdeletekeyifempty
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""
-Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\SupportedTypes"; ValueType: string; ValueName: ".reg"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg"; ValueType: string; ValueData: "Registry File"; Flags: uninsdeletekeyifempty
-Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""
-Root: HKCU; Subkey: "Software\Classes\.reg\OpenWithProgids"; ValueType: string; ValueName: "Chromatic.Registry.reg"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open"; ValueType: string; ValueData: "Open with Registry"
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\Registry.App.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""
-Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "Registry"
-Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "A modern editor for Windows registry data."
-Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationIcon"; ValueData: """{app}\Registry.App.exe"",0"
-Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities\FileAssociations"; ValueType: string; ValueName: ".reg"; ValueData: "Chromatic.Registry.reg"
-Root: HKCU; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "Registry"; ValueData: "Software\Chromatic\Registry\Capabilities"
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Registry"
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.App.exe\SupportedTypes"; ValueType: string; ValueName: ".reg"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Registry"; Flags: uninsdeletekeyifempty uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\Registry.exe\SupportedTypes"; ValueType: string; ValueName: ".reg"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg"; ValueType: string; ValueData: "Registry File"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg\DefaultIcon"; ValueType: string; ValueData: """{app}\Registry.App.exe"",0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Chromatic.Registry.reg\shell\open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.reg\OpenWithProgids"; ValueType: string; ValueName: "Chromatic.Registry.reg"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open"; ValueType: string; ValueData: "Open with Registry"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\Registry.App.exe"",0"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.reg\shell\Registry.Chromatic.Open\command"; ValueType: string; ValueData: """{app}\Registry.App.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "Registry"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "A modern editor for Windows registry data."; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; ValueType: string; ValueName: "ApplicationIcon"; ValueData: """{app}\Registry.App.exe"",0"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities\FileAssociations"; ValueType: string; ValueName: ".reg"; ValueData: "Chromatic.Registry.reg"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Chromatic\Registry\Capabilities"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "Registry"; ValueData: "Software\Chromatic\Registry\Capabilities"; Flags: uninsdeletevalue
 
 [Code]
 const

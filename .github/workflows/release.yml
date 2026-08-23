@@ -66,10 +66,10 @@ jobs:
           # The hosted Windows ARM runner does not include winget. Download the
           # current supported Inno Setup 7 release directly from its official
           # GitHub release instead, then install it into the runner temp folder.
-          $innoVersion = '7.1.0'
+          $innoVersion = '7.2.0'
           $innoInstaller = Join-Path $env:RUNNER_TEMP "innosetup-$innoVersion-x64.exe"
           $innoDirectory = Join-Path $env:RUNNER_TEMP 'InnoSetup7'
-          Invoke-WebRequest -Uri "https://github.com/jrsoftware/issrc/releases/download/is-7_1_0/innosetup-$innoVersion-x64.exe" -OutFile $innoInstaller
+          Invoke-WebRequest -Uri "https://github.com/jrsoftware/issrc/releases/download/is-7_2_0/innosetup-$innoVersion-x64.exe" -OutFile $innoInstaller
           $signature = Get-AuthenticodeSignature -FilePath $innoInstaller
           if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
             throw "Unexpected Inno Setup installer signature: $($signature.Status); $($signature.SignerCertificate.Subject)"
