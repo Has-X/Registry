@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - Release preparation
+
+- Modernized the native WinUI 3 app, CLI, packaging and ARM64 delivery path.
+- Added guarded `.reg` import previews, registry Journal entries, robust file-association registration and refreshed app artwork.
+- Completed application and installer localization coverage with automated locale checks.
+- Added release metadata, security and contribution standards, CodeQL Advanced and release automation.
+
 ## 0.1.0 - Preview
 
 Initial public preview.
