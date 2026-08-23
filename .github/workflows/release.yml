@@ -63,13 +63,17 @@ jobs:
       - name: Build Windows installer
         shell: pwsh
         run: |
-          # The hosted Windows ARM runner does not include winget. Download the
-          # current supported Inno Setup 7 release directly from its official
-          # GitHub release instead, then install it into the runner temp folder.
-          $innoVersion = '7.2.0'
-          $innoInstaller = Join-Path $env:RUNNER_TEMP "innosetup-$innoVersion-x64.exe"
+          # The hosted Windows ARM runner does not include winget. Download
+          # the latest official Inno Setup 7 release directly from GitHub.
+          $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/jrsoftware/issrc/releases/latest'
+          $installerAsset = $release.assets | Where-Object { $_.name -like 'innosetup-*-x64.exe' } | Select-Object -First 1
+          if (-not $installerAsset) {
+            throw "Could not find an x64 Inno Setup installer asset in the latest release"
+          }
+          $innoVersion = ($release.tag_name -replace '^is-', '') -replace '_', '.'
+          $innoInstaller = Join-Path $env:RUNNER_TEMP $installerAsset.name
           $innoDirectory = Join-Path $env:RUNNER_TEMP 'InnoSetup7'
-          Invoke-WebRequest -Uri "https://github.com/jrsoftware/issrc/releases/download/is-7_2_0/innosetup-$innoVersion-x64.exe" -OutFile $innoInstaller
+          Invoke-WebRequest -Uri $installerAsset.browser_download_url -OutFile $innoInstaller
           $signature = Get-AuthenticodeSignature -FilePath $innoInstaller
           if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
             throw "Unexpected Inno Setup installer signature: $($signature.Status); $($signature.SignerCertificate.Subject)"
