@@ -2,7 +2,7 @@ name: Pages
 
 on:
   push:
-    branches: ["master", "main"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
           cp docs/*.md public/docs/
           cp -r docs/images/* public/docs/images/
           cp docs/wiki/*.md public/wiki/
-          cp assets/background.png assets/registry-logo.png public/assets/
+          cp assets/background-rounded.png assets/registry-logo.png public/assets/
           cat > public/index.html <<'HTML'
           <!doctype html>
           <html lang="en">
@@ -47,7 +47,7 @@ jobs:
               :root { color-scheme: light dark; font-family: "Segoe UI", system-ui, sans-serif; }
               body { margin: 0; background: Canvas; color: CanvasText; }
               main { max-width: 900px; margin: 0 auto; padding: 32px 24px 48px; }
-              .hero { min-height: 280px; box-sizing: border-box; padding: 38px; border-radius: 16px; background: linear-gradient(90deg, rgb(3 20 53 / 88%), rgb(3 20 53 / 38%)), url("assets/background.png") center / cover; color: white; display: grid; align-content: center; }
+              .hero { min-height: 280px; box-sizing: border-box; padding: 38px; border-radius: 16px; background: linear-gradient(90deg, rgb(3 20 53 / 88%), rgb(3 20 53 / 38%)), url("assets/background-rounded.png") center / cover; color: white; display: grid; align-content: center; }
               .hero img { width: 72px; height: 72px; }
               .hero h1 { margin: 12px 0 6px; font-size: clamp(2rem, 5vw, 3.4rem); }
               .hero p { max-width: 610px; font-size: 1.1rem; line-height: 1.5; }

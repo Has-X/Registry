@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/background.png" alt="Registry workspace with registry cubes and inspection tools" width="100%">
+  <img src="assets/background-rounded.png" alt="Registry workspace with registry cubes and inspection tools" width="100%">
 </p>
 
 <h1 align="center"><img src="assets/registry-logo.png" alt="Registry logo" width="46" height="46" align="absmiddle"> Registry — a modern Windows Registry Editor</h1>
@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/architecture-x64%20%7C%20ARM64-0078D4" alt="x64 and ARM64">
   <img src="https://img.shields.io/badge/UI-WinUI%203%20%7C%20Windows%20App%20SDK-0078D4" alt="WinUI 3 and Windows App SDK">
   <img src="https://img.shields.io/badge/security-CodeQL%20Advanced-2EA44F" alt="CodeQL Advanced">
+  <img src="https://img.shields.io/badge/Made%20in-the%20EU%20%F0%9F%87%AA%F0%9F%87%BA-003399" alt="Made in the EU 🇪🇺">
   <img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-000000" alt="AGPL 3.0 or later">
 </p>
 

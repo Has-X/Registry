@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Has-X/Registry/master/assets/background.png" alt="Registry workspace" width="100%">
+  <img src="https://raw.githubusercontent.com/Has-X/Registry/main/assets/background-rounded.png" alt="Registry workspace" width="100%">
 </p>
 
 # Registry Wiki
