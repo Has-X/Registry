@@ -1,0 +1,11 @@
+name: Registry CodeQL security analysis
+
+# Generated WinUI and .NET sources are build outputs, not maintained source code.
+paths-ignore:
+  - "**/bin/**"
+  - "**/obj/**"
+
+# Keep the stronger security suite enabled without turning code scanning into a
+# style/lint dashboard. Code-quality diagnostics belong in the build analyzer.
+queries:
+  - uses: security-extended
